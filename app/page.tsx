@@ -20,7 +20,7 @@ export default function Page() {
         </svg>
         <div className="text-center max-w-screen-sm mb-10">
           <h1 className="text-stone-200 font-bold text-2xl">
-            Next.js + Postgres Auth Starter
+            Next.js + Postgres Starter
           </h1>
           <p className="text-stone-400 mt-5">
             This is a{' '}
@@ -32,16 +32,7 @@ export default function Page() {
             >
               Next.js
             </a>{' '}
-            starter kit that uses{' '}
-            <a
-              href="https://next-auth.js.org/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-stone-400 underline hover:text-stone-200 transition-all"
-            >
-              NextAuth.js
-            </a>{' '}
-            for simple email + password login and a{' '}
+            starter kit with{' '}
             <a
               href="https://vercel.com/postgres"
               target="_blank"
@@ -50,19 +41,21 @@ export default function Page() {
             >
               Postgres
             </a>{' '}
-            database to persist the data.
+            database and{' '}
+            <a
+              href="https://orm.drizzle.team/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-stone-400 underline hover:text-stone-200 transition-all"
+            >
+              Drizzle ORM
+            </a>{' '}
+            for database operations.
           </p>
         </div>
         <div className="flex space-x-3">
-          <Link
-            href="/protected"
-            className="text-stone-400 underline hover:text-stone-200 transition-all"
-          >
-            Protected Page
-          </Link>
-          <p className="text-white">·</p>
           <a
-            href="https://vercel.com/templates/next.js/prisma-postgres-auth-starter"
+            href="https://vercel.com/templates/next.js"
             target="_blank"
             rel="noopener noreferrer"
             className="text-stone-400 underline hover:text-stone-200 transition-all"
