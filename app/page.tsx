@@ -1,68 +1,40 @@
-import Link from 'next/link';
+import HeroSection from './components/hero-section';
+import ProblemStatement from './components/problem-statement';
+import StatisticsCard from './components/statistics-card';
+import SolutionOverview from './components/solution-overview';
+import ImpactQuote from './components/impact-quote';
+import TargetAudience from './components/target-audience';
 
 export default function Page() {
   return (
-    <div className="flex h-screen bg-black">
-      <div className="w-screen h-screen flex flex-col justify-center items-center">
-        <svg
-          width="283"
-          height="64"
-          viewBox="0 0 283 64"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-36 h-36"
-          aria-label="Vercel logo"
-        >
-          <path
-            d="M141.04 16c-11.04 0-19 7.2-19 18s8.96 18 20 18c6.67 0 12.55-2.64 16.19-7.09l-7.65-4.42c-2.02 2.21-5.09 3.5-8.54 3.5-4.79 0-8.86-2.5-10.37-6.5h28.02c.22-1.12.35-2.28.35-3.5 0-10.79-7.96-17.99-19-17.99zm-9.46 14.5c1.25-3.99 4.67-6.5 9.45-6.5 4.79 0 8.21 2.51 9.45 6.5h-18.9zM248.72 16c-11.04 0-19 7.2-19 18s8.96 18 20 18c6.67 0 12.55-2.64 16.19-7.09l-7.65-4.42c-2.02 2.21-5.09 3.5-8.54 3.5-4.79 0-8.86-2.5-10.37-6.5h28.02c.22-1.12.35-2.28.35-3.5 0-10.79-7.96-17.99-19-17.99zm-9.45 14.5c1.25-3.99 4.67-6.5 9.45-6.5 4.79 0 8.21 2.51 9.45 6.5h-18.9zM200.24 34c0 6 3.92 10 10 10 4.12 0 7.21-1.87 8.8-4.92l7.68 4.43c-3.18 5.3-9.14 8.49-16.48 8.49-11.05 0-19-7.2-19-18s7.96-18 19-18c7.34 0 13.29 3.19 16.48 8.49l-7.68 4.43c-1.59-3.05-4.68-4.92-8.8-4.92-6.07 0-10 4-10 10zm82.48-29v46h-9V5h9zM36.95 0L73.9 64H0L36.95 0zm92.38 5l-27.71 48L73.91 5H84.3l17.32 30 17.32-30h10.39zm58.91 12v9.69c-1-.29-2.06-.49-3.2-.49-5.81 0-10 4-10 10V51h-9V17h9v9.2c0-5.08 5.91-9.2 13.2-9.2z"
-            fill="white"
-          />
-        </svg>
-        <div className="text-center max-w-screen-sm mb-10">
-          <h1 className="text-stone-200 font-bold text-2xl">
-            Next.js + Postgres Starter
-          </h1>
-          <p className="text-stone-400 mt-5">
-            This is a{' '}
-            <a
-              href="https://nextjs.org/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-stone-400 underline hover:text-stone-200 transition-all"
-            >
-              Next.js
-            </a>{' '}
-            starter kit with{' '}
-            <a
-              href="https://vercel.com/postgres"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-stone-400 underline hover:text-stone-200 transition-all"
-            >
-              Postgres
-            </a>{' '}
-            database and{' '}
-            <a
-              href="https://orm.drizzle.team/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-stone-400 underline hover:text-stone-200 transition-all"
-            >
-              Drizzle ORM
-            </a>{' '}
-            for database operations.
-          </p>
+    <div className="min-h-screen bg-slate-50 p-3 sm:p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Main Bento Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 auto-rows-fr">
+          {/* Hero Section - Takes up 2 columns and 2 rows */}
+          <HeroSection />
+          
+          {/* Problem Statement - 1 column, 2 rows */}
+          <ProblemStatement />
+          
+          {/* Statistics Card - 1 column, 1 row */}
+          <StatisticsCard />
+          
+          {/* Impact Quote - 1 column, 1 row */}
+          <ImpactQuote />
+          
+          {/* Target Audience - 1 column, 1 row */}
+          <TargetAudience />
+          
+          {/* Solution Overview - 3 columns, 1 row */}
+          <SolutionOverview />
         </div>
-        <div className="flex space-x-3">
-          <a
-            href="https://vercel.com/templates/next.js"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-stone-400 underline hover:text-stone-200 transition-all"
-          >
-            Deploy to Vercel
-          </a>
-        </div>
+        
+        {/* Footer */}
+        <footer className="mt-12 sm:mt-16 text-center text-sm text-slate-500 px-4">
+          <p>© 2025 Cosmetic Safety Platform. Protecting young consumers in Malaysia.</p>
+          <p className="mt-2">Built with data from Malaysian health authorities and safety research.</p>
+        </footer>
       </div>
     </div>
   );

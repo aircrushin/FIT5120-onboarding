@@ -2,19 +2,20 @@ import './globals.css';
 
 import { GeistSans } from 'geist/font/sans';
 
-let title = 'Next.js + Postgres Starter';
+let title = 'Cosmetic Safety Platform | Protect Your Health';
 let description =
-  'This is a Next.js starter kit with Postgres database and Drizzle ORM for database operations.';
+  'Helping young adults in Malaysia make informed cosmetic choices by checking product safety, understanding risks, and receiving alerts about banned or harmful products.';
 
 export const metadata = {
   title,
   description,
+  keywords: ['cosmetic safety', 'Malaysia', 'product scanner', 'health protection', 'beauty safety'],
   twitter: {
     card: 'summary_large_image',
     title,
     description,
   },
-  metadataBase: new URL('https://nextjs-postgres-starter.vercel.app'),
+  metadataBase: new URL('https://cosmetic-safety-platform.vercel.app'),
 };
 
 export default function RootLayout({
