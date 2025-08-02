@@ -1,30 +1,172 @@
-# Next.js + PostgreSQL Auth Starter
+# Next.js + PostgreSQL Starter
 
-This is a [Next.js](https://nextjs.org/) starter kit that uses [NextAuth.js](https://next-auth.js.org/) for simple email + password login, [Drizzle](https://orm.drizzle.team) as the ORM, and a [Neon Postgres](https://vercel.com/postgres) database to persist the data.
+This is a [Next.js](https://nextjs.org/) starter kit that uses [Drizzle ORM](https://orm.drizzle.team) and a [PostgreSQL](https://vercel.com/postgres) database for data persistence.
 
-## Deploy Your Own
+## Features
 
-You can clone & deploy it to Vercel with one click:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?demo-title=Next.js%20Prisma%20PostgreSQL%20Auth%20Starter&demo-description=Simple%20Next.js%2013%20starter%20kit%20that%20uses%20Next-Auth%20for%20auth%20and%20Prisma%20PostgreSQL%20as%20a%20database.&demo-url=https%3A%2F%2Fnextjs-postgres-auth.vercel.app%2F&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F7rsVQ1ZBSiWe9JGO6FUeZZ%2F210cba91036ca912b2770e0bd5d6cc5d%2Fthumbnail.png&project-name=Next.js%%20Prisma%20PostgreSQL%20Auth%20Starter&repository-name=nextjs-postgres-auth-starter&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnextjs-postgres-auth-starter&from=templates&skippable-integrations=1&env=AUTH_SECRET&envDescription=Generate%20a%20random%20secret%3A&envLink=https://generate-secret.vercel.app/&stores=%5B%7B"type"%3A"postgres"%7D%5D)
-
-## Developing Locally
-
-You can clone & create this repo with the following command
-
-```bash
-npx create-next-app nextjs-typescript-starter --example "https://github.com/vercel/nextjs-postgres-auth-starter"
-```
+- ✅ **Next.js 14** with App Router
+- ✅ **PostgreSQL** database
+- ✅ **Drizzle ORM** for type-safe database operations
+- ✅ **TypeScript** for type safety
+- ✅ **Tailwind CSS** for styling
+- ✅ **Vercel deployment** ready
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ installed
+- pnpm installed (`npm install -g pnpm`)
+- PostgreSQL database (local or hosted)
+
+### 1. Clone and Install
+
+```bash
+# Clone the repository
+git clone https://github.com/aircrushin/FIT5120-onboarding.git
+cd fit5120-onborading
+
+# Install dependencies
+pnpm install
+```
+
+### 2. Environment Setup
+
+Create a `.env.local` file in the root directory:
+
+```env
+# For production with SSL (e.g., Vercel Postgres, Neon, etc.)
+# POSTGRES_URL="postgresql://username:password@host:5432/database?sslmode=require"
+```
+
+#### Database Options:
+
+**Option A: Vercel Postgres**
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Create a new Postgres database
+3. Copy the connection string to your `.env.local`
+
+**Option B: Neon (Free tier)**
+1. Sign up at [Neon](https://neon.tech/)
+2. Create a new database
+3. Copy the connection string to your `.env.local`
+
+### 3. Database Setup
+
+The current setup includes an example table. You can modify it in `app/db.ts`:
+
+```typescript
+// Example table schema in app/db.ts
+export const exampleTable = pgTable('example', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 64 }),
+});
+```
+
+### 4. Creating Tables
+
+**Option A: Manual SQL**
+Connect to your database and run:
+```sql
+CREATE TABLE example (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(64)
+);
+```
+
+**Option B: Using Drizzle Kit (Recommended)**
+
+1. Install Drizzle Kit:
+```bash
+pnpm add -D drizzle-kit
+```
+
+2. Create `drizzle.config.ts` in the root:
+```typescript
+import type { Config } from 'drizzle-kit';
+
+export default {
+  schema: './app/db.ts',
+  out: './drizzle',
+  driver: 'pg',
+  dbCredentials: {
+    connectionString: process.env.POSTGRES_URL!,
+  },
+} satisfies Config;
+```
+
+3. Generate and push schema:
+```bash
+# Generate migration files
+pnpm db:generate
+
+# Push schema to database
+pnpm db:push
+
+# Open Drizzle Studio (optional)
+pnpm db:studio
+```
+
+### 5. Start Development
 
 ```bash
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see your application.
+
+## Database Operations
+
+### Basic Queries
+
+```typescript
+import { db, exampleTable } from './app/db';
+
+// Insert data
+await db.insert(exampleTable).values({ name: 'John Doe' });
+
+// Select data
+const users = await db.select().from(exampleTable);
+
+// Update data
+await db.update(exampleTable).set({ name: 'Jane Doe' }).where(eq(exampleTable.id, 1));
+
+// Delete data
+await db.delete(exampleTable).where(eq(exampleTable.id, 1));
+```
+
+### Adding New Tables
+
+1. Define your table in `app/db.ts`:
+```typescript
+export const postsTable = pgTable('posts', {
+  id: serial('id').primaryKey(),
+  title: varchar('title', { length: 255 }).notNull(),
+  content: text('content'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+```
+
+2. Generate and push migration:
+```bash
+pnpm db:generate
+pnpm db:push
+```
+
+## Project Structure
+
+```
+├── app/
+│   ├── api/                 # API routes
+│   ├── db.ts               # Database schema and connection
+│   ├── layout.tsx          # Root layout
+│   ├── page.tsx            # Home page
+│   └── globals.css         # Global styles
+├── drizzle/                # Generated migrations (if using Drizzle Kit)
+├── .env.local              # Environment variables
+├── drizzle.config.ts       # Drizzle Kit configuration
+└── package.json
+```
 
 ## Learn More
 
