@@ -1,6 +1,6 @@
 # Next.js + PostgreSQL Starter
 
-This is a [Next.js](https://nextjs.org/) starter kit that uses [Drizzle ORM](https://orm.drizzle.team) and a [PostgreSQL](https://vercel.com/postgres) database for data persistence.
+This is a [Next.js](https://nextjs.org/) starter kit that uses [Drizzle](https://orm.drizzle.team) as the ORM, and a [Neon Postgres](https://vercel.com/postgres) database to persist the data.
 
 ## Features
 
