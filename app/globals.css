@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-hightlight-light: 218, 219, 248;
+  --color-accent-light: 217, 234, 227;
+  --color-primary-light: 255, 207, 225;
+  --color-secondary-light: 255, 252, 229;
+  --color-primary: 255, 15, 103;
+  --color-primary-content: 255, 255, 255;
+  --color-secondary: 255, 240, 124;
+  --color-secondary-content: 10, 10, 10;
+  --color-accent: 67, 151, 117;
+  --color-accent-content: 10, 10, 10;
+  --color-neutral: 34, 34, 34;
+  --color-neutral-content: 255, 255, 255;
+  --color-base-100: 240, 240, 240;
+  --color-base-200: 255, 255, 255;
+  --color-base-300: 242, 242, 242;
+  --color-base-content: 10, 10, 10;
+  --color-info: 58, 191, 248;
+  --color-success: 54, 211, 153;
+  --color-warning: 251, 189, 35;
+  --color-error: 248, 114, 114;
+  --color-highlight: 69, 74, 222;
+  --color-muted: 119, 119, 119;
+  
+  --font-display: 'Outfit', sans-serif;
+  --font-sans: 'Inter Tight', sans-serif;
+}
+
 @layer utilities {
   /* Animation keyframes */
   @keyframes fade-in {

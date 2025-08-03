@@ -1,9 +1,6 @@
 import HeroSection from './components/hero-section';
 import ProblemStatement from './components/problem-statement';
-import StatisticsCard from './components/statistics-card';
-import SolutionOverview from './components/solution-overview';
-import ImpactQuote from './components/impact-quote';
-import TargetAudience from './components/target-audience';
+import { CosmeticSafetyBentoGrid } from '@/components/ui/colorful-bento-grid';
 
 export default function Page() {
   return (
@@ -16,24 +13,15 @@ export default function Page() {
           
           {/* Problem Statement - 1 column, 2 rows */}
           <ProblemStatement />
-          
-          {/* Statistics Card - 1 column, 1 row */}
-          <StatisticsCard />
-          
-          {/* Impact Quote - 1 column, 1 row */}
-          <ImpactQuote />
-          
-          {/* Target Audience - 1 column, 1 row */}
-          <TargetAudience />
-          
-          {/* Solution Overview - 3 columns, 1 row */}
-          <SolutionOverview />
         </div>
+        
+        {/* Professional Bento Grid for Platform Features */}
+        <CosmeticSafetyBentoGrid />
         
         {/* Footer */}
         <footer className="mt-12 sm:mt-16 text-center text-sm text-slate-500 px-4">
-          <p>© 2025 Cosmetic Safety Platform. Protecting young consumers in Malaysia.</p>
-          <p className="mt-2">Built with data from Malaysian health authorities and safety research.</p>
+          <p>© FIT5120 TM01</p>
+          <p className="mt-2">Built with open-data and love ❤ </p>
         </footer>
       </div>
     </div>
