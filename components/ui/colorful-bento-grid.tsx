@@ -19,8 +19,8 @@ export const CosmeticSafetyBentoGrid = () => {
           </div>
 
           <div className='flex flex-row text-accent gap-6 items-start justify-center'>
-            <p className='text-base whitespace-nowrap font-medium'>Analyzed with open data</p>
-            <p className='text-base whitespace-nowrap font-medium'>Safe for All Skin Types</p> 
+            <p className='text-base whitespace-nowrap font-medium italic'>Analyzed with open data</p>
+            {/* <p className='text-base whitespace-nowrap font-medium'>Safe for All Skin Types</p>  */}
           </div>
         </div>
       </div>

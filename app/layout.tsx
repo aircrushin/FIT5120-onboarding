@@ -2,7 +2,7 @@ import './globals.css';
 
 import { GeistSans } from 'geist/font/sans';
 
-let title = 'Cosmetic Safety Platform | Protect Your Health';
+let title = 'Cosmetic Safety Platform | build with ❤ 5120-TM1';
 let description =
   'Helping young adults in Malaysia make informed cosmetic choices by checking product safety, understanding risks, and receiving alerts about banned or harmful products.';
 
@@ -15,7 +15,6 @@ export const metadata = {
     title,
     description,
   },
-  metadataBase: new URL('https://cosmetic-safety-platform.vercel.app'),
 };
 
 export default function RootLayout({
