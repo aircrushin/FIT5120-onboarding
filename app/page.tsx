@@ -17,12 +17,6 @@ export default function Page() {
         
         {/* Professional Bento Grid for Platform Features */}
         <CosmeticSafetyBentoGrid />
-        
-        {/* Footer */}
-        <footer className="mt-12 sm:mt-16 text-center text-sm text-slate-500 px-4">
-          <p>© FIT5120 TM01</p>
-          <p className="mt-2">Built with open-data and love ❤ </p>
-        </footer>
       </div>
     </div>
   );

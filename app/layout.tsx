@@ -2,6 +2,7 @@ import "./globals.css";
 
 import { GeistSans } from "geist/font/sans";
 import Header from "./components/header";
+import Footer from "./components/footer";
 
 let title = "Cosmetic Safety Platform | build with ❤ 5120-TM1";
 let description =
@@ -85,6 +86,7 @@ export default function RootLayout({
       <body className={GeistSans.variable}>
         <Header />
         {children}
+        <Footer />
       </body>
     </html>
   );
