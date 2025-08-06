@@ -79,3 +79,15 @@ export const prodIngredientTable = pgTable(
         }),
     ]
 );
+
+export type InsertHolder = typeof holderTable.$inferInsert;
+export type SelectHolder = typeof holderTable.$inferSelect;
+
+export type InsertProduct = typeof productTable.$inferInsert;
+export type SelectProduct = typeof productTable.$inferSelect;
+
+export type InsertIngredient = typeof ingredientTable.$inferInsert;
+export type SelectIngredient = typeof ingredientTable.$inferSelect;
+
+export type InsertProdIngredient = typeof prodIngredientTable.$inferInsert;
+export type SelectProdIngredient = typeof prodIngredientTable.$inferSelect;
