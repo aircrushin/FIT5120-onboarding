@@ -78,13 +78,13 @@ export const About3 = ({
     alt: "Cosmetic products verification",
   },
   breakout = {
-    src: "https://img.logoipsum.com/296.svg",
+    src: "/logo.svg",
     alt: "TM01 logo",
     title: "Supporting UN SDG 3 & 12 Goals",
     description:
       "Promoting good health and well-being while encouraging responsible consumption of cosmetic products through transparency and education.",
     buttonText: "Learn More",
-    buttonUrl: "#",
+    buttonUrl: "https://sdgs.un.org/goals",
   },
   companiesTitle = "Trusted by young consumers in urban Malaysia",
   companies = defaultCompanies,
@@ -93,7 +93,7 @@ export const About3 = ({
   achievements = defaultAchievements,
 }: About3Props = {}) => {
   return (
-    <section className="py-32">
+    <section className="py-16">
       <div className="container mx-auto">
         <div className="mb-14 grid gap-5 text-center md:grid-cols-2 md:text-left">
           <h1 className="text-5xl font-semibold">{title}</h1>
