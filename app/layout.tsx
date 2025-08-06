@@ -56,7 +56,6 @@ export default function RootLayout({
                 background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%) !important;
                 color: white !important;
                 border: none !important;
-                box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3) !important;
                 transition: all 0.3s ease !important;
                 position: fixed !important;
                 z-index: 9999 !important;
@@ -66,14 +65,6 @@ export default function RootLayout({
                 transform: scale(1.05) !important;
                 box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4) !important;
               }
-                #dify-chatbot-bubble-window {
-                  max-height: 80vh !important;
-                  position: fixed !important;
-                  z-index: 9999 !important;
-                  border-radius: 12px !important;
-                  overflow: hidden !important;
-                  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
-                }
                 #dify-chatbot-bubble-button,
                 #dify-chatbot-bubble-window {
                   position: fixed !important;
