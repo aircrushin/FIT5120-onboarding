@@ -32,7 +32,7 @@ export default function Footer() {
               href="/"
               className="flex flex-row gap-2 items-center justify-start text-2xl font-bold text-slate-800 hover:text-purple-600 transition-colors duration-300"
             >
-              Cosmetic Safety Platform
+              Scentelli
             </Link>
             <p className='text-slate-600 font-medium text-base w-full md:w-4/5 leading-relaxed'>
               Helping young adults in Malaysia make informed cosmetic choices.

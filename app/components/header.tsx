@@ -20,10 +20,10 @@ export default function Header() {
             </div>
             <div className="hidden sm:block">
               <h1 className="text-lg sm:text-xl font-bold text-slate-800 group-hover:text-purple-600 transition-colors">
-                SkinTelli
+                Scentelli
               </h1>
               <p className="text-xs text-slate-500 leading-tight">
-                Product Safety
+                Safe. Smart. Scentelli
               </p>
             </div>
           </Link>
