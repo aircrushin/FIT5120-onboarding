@@ -1,10 +1,10 @@
 CREATE TABLE "holder" (
-	"holder_id" serial PRIMARY KEY NOT NULL,
+	"holder_id" integer PRIMARY KEY NOT NULL,
 	"holder_name" text NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "ingredient" (
-	"ing_id" serial PRIMARY KEY NOT NULL,
+	"ing_id" integer PRIMARY KEY NOT NULL,
 	"ing_name" text NOT NULL,
 	"ing_risk_summary" varchar(80) NOT NULL,
 	"ing_risk_type" char(1) NOT NULL,

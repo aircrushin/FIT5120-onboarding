@@ -1,5 +1,5 @@
 {
-  "id": "db9ab98b-b0eb-4db9-a388-c1abef21522d",
+  "id": "d20ff1b1-5d12-4d3e-b715-239c3831250b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -10,7 +10,7 @@
       "columns": {
         "holder_id": {
           "name": "holder_id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
           "notNull": true
         },
@@ -35,7 +35,7 @@
       "columns": {
         "ing_id": {
           "name": "ing_id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
           "notNull": true
         },
