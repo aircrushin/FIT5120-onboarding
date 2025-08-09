@@ -1,0 +1,73 @@
+ingredient_id,ingredient_name,ingredient_risk_type,ingredient_risk_summary
+1,Mercury,Banned,"Extremely dangerous heavy metal that's banned worldwide in skincare. Can poison your nervous system, damage kidneys, and cause permanent skin color changes. Small amounts through skin can cause shaking, memory problems, and breathing issues. "
+2,Tretnon,Banned,"A strong acne medicine that requires a doctor's prescription. Causes severe skin peeling, redness, and makes your skin extremely sensitive to sun damage. Can harm unborn babies if used during pregnancy. Too strong for regular skincare without medical supervision."
+3,Clindamycin,Banned,Prescription antibiotic that shouldn't be in skincare products. Misuse creates dangerous drug-resistant bacteria and can cause severe allergic reactions. May disrupt your skin's natural protective bacteria and cause serious stomach problems. 
+4,Hydroquinone,Banned,"Skin bleaching chemical banned in Europe and restricted in the US due to cancer risks. Can cause permanent blue-black skin patches, eye damage, and breathing problems. "
+5,Steroid,Banned,"Powerful prescription medicines that thin your skin, cause stretch marks, and increase infection risk. Can disrupt your body's natural hormones and cause skin to become paper-thin and easily damaged. Never safe in regular skincare - these need strict medical monitoring to prevent serious side effects."
+6,Diphenhydramine,Banned,"Allergy medicine that causes drowsiness and confusion when absorbed through skin. Can make you feel dizzy, cause urinary problems, and interact dangerously with other medications you're taking. Especially risky for elderly people and can cause opposite effects (hyperactivity) in children."
+7,Hydroquinone And Tretinoin,Banned,"Dangerous combination that multiplies the risks of both ingredients. The bleaching agent increases cancer risk while tretinoin makes skin absorb more chemicals and become extremely sun-sensitive. Together they can cause permanent skin damage, severe irritation, and amplified toxic effects throughout your body."
+8,Tretinoin,Banned,"Strong acne prescription that requires doctor supervision. Causes severe skin peeling, burning, and dangerous sun sensitivity requiring daily sunscreen. Can cause birth defects during pregnancy. One major study had to stop early due to increased deaths, possibly from the drug affecting lungs and other organs."
+9,Methyl Salicylate,Banned,"Muscle pain reliever that can burn skin and poison your system when absorbed. Can cause severe skin burns, difficulty breathing, and aspirin-like poisoning with ringing ears and nausea. Extremely dangerous for children and anyone allergic to aspirin - can be life-threatening."
+10,Menthol,Banned,"Cooling ingredient that can cause allergic reactions and breathing problems when concentrated. May trigger chemical burns, worsen asthma, and cause dangerous breathing issues in babies. While safe in small amounts, concentrated menthol in skincare can cause serious skin and respiratory reactions."
+11,Thymol,Banned,"Antimicrobial compound that irritates skin and can damage your liver with repeated use. Causes allergic skin reactions, burns mucous membranes, and can poison your system when absorbed through skin. High concentrations may cause chemical burns and harm internal organs over time."
+12,Trimethoprim,Banned,"Antibiotic that creates drug-resistant bacteria when misused in skincare. Causes blood disorders, severe sun sensitivity, and life-threatening allergic reactions including dangerous skin peeling conditions. Using antibiotics in cosmetics contributes to the global problem of antibiotic resistance."
+13,Sulfamethoxazole,Banned,"Sulfa antibiotic that causes severe, potentially fatal allergic reactions including dangerous skin conditions where skin peels off in sheets. Can damage kidneys, cause blood disorders, and extreme sun sensitivity. Creates antibiotic-resistant bacteria when used inappropriately in cosmetics."
+14,Ketoconazole,Banned,"Antifungal medicine that can damage your liver and disrupt hormones. Causes severe allergic reactions and can affect your body's ability to produce essential hormones. When absorbed through skin, may cause nausea, liver problems, and require blood tests to monitor liver function."
+15,Chloramphenicol,Banned,Extremely dangerous antibiotic that can destroy bone marrow and cause fatal blood disorders. Can cause 'gray baby syndrome' in infants and irreversible bone marrow damage leading to death. Associated with increased leukemia risk. Absorbs easily through skin making cosmetic use lethal.
+16,Chlorpheniramine,Banned,"Allergy medicine that causes drowsiness, confusion, and memory problems when absorbed through skin. Can cause dry mouth, difficulty urinating, and dangerous interactions with other medications. May cause hyperactivity in children and cognitive problems in elderly users."
+17,Metronidazole,Banned,"Antibiotic with potential cancer-causing effects shown in animal studies. Causes nausea, metallic taste, and dangerous reactions when combined with alcohol. Can cause nerve damage in hands and feet. Creates antibiotic resistance and disrupts beneficial skin bacteria."
+18,Griseofulvin,Banned,"Antifungal medicine with cancer-causing and birth defect risks. Damages liver, causes dangerous sun sensitivity, and may trigger lupus-like autoimmune reactions. Animal studies show cancer risk. Can cause blood disorders and requires careful medical monitoring when used as medicine."
+19,Miconazole,Banned,Antifungal that can cause allergic skin reactions and burning sensations when used inappropriately in cosmetics. May create drug-resistant fungi and disrupt skin's natural protective barrier. Can interact with other skin treatments and cause unexpected absorption issues.
+20,Isopropyl Alcohol,Banned,"Rubbing alcohol that severely dries and damages skin when used in high concentrations. Strips away skin's natural protective oils causing cracking, irritation, and increased infection risk. Can cause chemical burns and toxic effects if absorbed in large amounts or inhaled."
+21,Azelaic Acid,Banned,"Prescription acne treatment that causes burning, stinging, and sun sensitivity. Can trigger skin allergies and cause lighter patches on darker skin. May irritate airways if inhaled. Needs gradual introduction and medical supervision to prevent severe skin reactions."
+22,Water,No Risk,Safe for all skin types and daily use without any known side effects.
+23,Glycerin,No Risk,"Natural moisturizer that's extremely safe for all skin types, including babies and sensitive skin. "
+24,Dimethicone,No Risk," Suitable for sensitive skin and doesn't absorb into your body. Chemically stable and won't react with other ingredients, making it extremely safe for daily use."
+25,Niacinamide,No Risk,Well-tolerated by sensitive skin with proven anti-inflammatory benefits. Safe for daily use and pregnancy.
+26,Phenoxyethanol,Low Risk,Generally safe for most people with only mild irritation possible in very sensitive individuals.Rare allergic reactions reported but overall excellent safety record.
+27,Fragrance,High Risk,"Complex mix of chemicals that commonly cause allergic reactions, headaches, and breathing problems. Can trigger asthma, skin rashes, and hormone disruption. Many fragrance chemicals aren't fully disclosed on labels. If you have sensitive skin or allergies, fragrance-free products are safer."
+28,Ricinus Communis (Castor) Seed Oil,No Risk,Natural castor oil that's very safe for skin with excellent moisturizing properties. Great for dry skin and considered safe for daily use.
+29,Candelilla Wax,No Risk,Plant-based wax that's hypoallergenic and perfect for sensitive skin.
+30,Beeswax,No Risk,Natural wax with a long history of safe use in skincare. Well-tolerated by most people with rare allergic reactions
+31,Tocopherol,No Risk,Generally considered safe with additional skin protection benefits when used daily.
+32,Flavor,No Risk,Food-grade flavoring that's safe for lip products and oral care items.
+33,Cyclopentasiloxane,No Risk, Safe for all skin types including sensitive skin.
+34,Mica,No Risk,Natural mineral that adds shimmer and color safely. Well-tolerated by most skin types with minimal irritation. 
+35,Sodium Laureth Sulfate,High Risk,"Harsh cleansing agent that strips skin's natural oils causing dryness, irritation, and skin barrier damage. Can worsen eczema and cause eye/skin burning. May contain cancer-causing contaminants from manufacturing. Particularly problematic for sensitive or already damaged skin."
+36,Cocamidopropyl Betaine,High Risk,"Cleansing ingredient that commonly causes allergic reactions, especially around eyes. Contains impurities that increase irritation risk. Can cause burning, stinging, and skin sensitization. Problematic for people with sensitive skin or existing skin allergies."
+37,Sodium Chloride,No Risk,Generally well-tolerated by all skin types and used safely to thicken products and adjust texture.
+38,Kaolin,No Risk,Gentle clay that's safe for all skin types including sensitive skin.
+39,Bentonite,No Risk,Natural clay with good safety profile that helps purify and detoxify skin. 
+40,Propylene Glycol,No Risk,Common ingredient that helps other ingredients penetrate skin and provides moisture. Generally safe for most people but may cause irritation in sensitive individuals.
+41,Alcohol Denat,High Risk,"Drying alcohol that strips skin's natural oils causing irritation, dryness, and flaking. Can damage skin barrier leading to increased sensitivity and potential infections. Causes stinging and burning sensations. Long-term use can make skin more prone to damage and premature aging."
+42,Butane,No Risk,Very safe with no irritation potential since it evaporates immediately. 
+43,Propane,No Risk,Generally recognized as safe when used properly in pressurized cosmetic products with adequate ventilation.
+44,Isobutane,No Risk,Generally recognized as safe for spray cosmetic products when used as directed.
+45,Lanolin,No Risk,Purified versions have reduced allergy risk while maintaining skin benefits. Patch testing recommended for sensitive individuals.
+46,Homosalate,No Risk,Sunscreen ingredient that's generally safe and well-tolerated for sun protection. 
+47,Octocrylene,No Risk,Sunscreen ingredient that's very safe and helps stabilize other sun protection ingredients. 
+48,Avobenzone,No Risk,Broad-spectrum sunscreen ingredient that's generally safe when properly formulated. 
+49,Oxybenzone,No Risk,Safe for cosmetic use but many brands are switching to alternative UV filters due to environmental concerns.
+50,Octinoxate,No Risk,Common sunscreen ingredient that's generally safe for most people. 
+51,Zinc Oxide,No Risk,"Physical sunscreen that's extremely safe for all skin types, including babies and sensitive skin."
+52,Titanium Dioxide,No Risk,Perfect for sensitive skin and considered the safest UV protection available.
+53,Parfum,No Risk,European term for fragrance that's generally safe when properly regulated. 
+54,Aqua,No Risk,Safe for all skin types and daily use.
+55,Limonene,No Risk,Generally well-tolerated providing pleasant scent with manageable allergy risk when properly labeled.
+56,Linalool,No Risk,Generally well-tolerated by most people providing pleasant floral scent with low risk when properly disclosed.
+57,Coumarin,No Risk,Requires careful concentration control but overall good safety profile.
+58,Hyaluronic Acid,No Risk,Safe for daily use with proven anti-aging benefits.
+59,Carbomer,No Risk,Overall excellent safety record for providing product texture and stability.
+60,Triethanolamine,High Risk,"pH adjuster that can irritate skin and eyes, especially at higher concentrations. Can form potentially cancer-causing compounds when mixed with certain preservatives. May cause allergic reactions and breathing problems. Many brands are replacing it with safer alternatives."
+61,Caprylic/Capric Triglyceride,No Risk,Safe for sensitive skin and daily use.
+62,Cetearyl Alcohol,No Risk,Generally safe with rare allergic reactions.
+63,Stearic Acid,No Risk,Generally safe with very rare cases of allergic reactions.
+64,Petrolatum,No Risk,Safe for babies and sensitive skin.
+65,Iron Oxides,No Risk,Very safe for sensitive skin and daily use in makeup and skincare products.
+66,Silica,No Risk,Mineral powder that's generally safe for cosmetic use.
+67,Carnauba Wax,No Risk,Plant wax that's extremely safe and provides glossy finish.
+68,Polybutene,No Risk,Generally safe with no significant allergy or sensitivity concerns.
+69,Witch Hazel Water,No Risk,Generally safe for most people.
+70,Trimethylsiloxysilicate,No Risk,Provides excellent wear and water resistance without skin concerns. Safe for daily use.
+71,Disteardimonium Hectorite,No Risk,Non-comedogenic and chemically stable. Provides texture and helps suspend ingredients safely without skin risks.
+72,Propylene Carbonate,No Risk,Generally safe when used appropriately.
