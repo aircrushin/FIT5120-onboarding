@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, serial, text, varchar, char, date, integer, check, primaryKey, foreignKey } from 'drizzle-orm/pg-core';
+import { pgTable, text, varchar, char, date, integer, check, primaryKey, foreignKey } from 'drizzle-orm/pg-core';
 
 /* Example for setting up table
 export const usersTable = pgTable('users_table', {
@@ -18,7 +18,7 @@ export type SelectUser = typeof usersTable.$inferSelect;
 export const holderTable = pgTable(
     'holder', 
     {
-        holder_id: serial('holder_id').primaryKey(),
+        holder_id: integer('holder_id').primaryKey(),
         holder_name: text('holder_name').notNull(),
     }
 );
@@ -49,9 +49,9 @@ export const productTable = pgTable(
 export const ingredientTable = pgTable(
     'ingredient',
     {
-        ing_id: serial('ing_id').primaryKey(),
+        ing_id: integer('ing_id').primaryKey(),
         ing_name: text('ing_name').notNull(),
-        ing_risk_summary: varchar('ing_risk_summary', {length: 80}).notNull(), // Maximum 80 words
+        ing_risk_summary: text('ing_risk_summary').notNull(),
         ing_risk_type: char('ing_risk_type', {length: 1}).notNull(), // Risk type (B - Banned, H - High, L - Low)
     },
     (table) => [

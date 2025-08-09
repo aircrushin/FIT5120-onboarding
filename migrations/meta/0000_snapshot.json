@@ -1,5 +1,5 @@
 {
-  "id": "d20ff1b1-5d12-4d3e-b715-239c3831250b",
+  "id": "b2e4ac17-dad3-400d-a7f4-cd70b889f55d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -47,7 +47,7 @@
         },
         "ing_risk_summary": {
           "name": "ing_risk_summary",
-          "type": "varchar(80)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },

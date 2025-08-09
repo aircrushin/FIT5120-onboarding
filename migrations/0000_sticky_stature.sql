@@ -6,7 +6,7 @@ CREATE TABLE "holder" (
 CREATE TABLE "ingredient" (
 	"ing_id" integer PRIMARY KEY NOT NULL,
 	"ing_name" text NOT NULL,
-	"ing_risk_summary" varchar(80) NOT NULL,
+	"ing_risk_summary" text NOT NULL,
 	"ing_risk_type" char(1) NOT NULL,
 	CONSTRAINT "chk_ing_risk_type" CHECK ("ingredient"."ing_risk_type" in ('B', 'H', 'L'))
 );
