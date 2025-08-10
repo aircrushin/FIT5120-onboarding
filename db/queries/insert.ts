@@ -313,7 +313,8 @@ async function insertProductsFromCSV() {
         productsData.push(product);
       } catch (error) {
         console.warn(`Skipping invalid product row:`, row, error);
-        skippedProducts.push({ row, error: error.message });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        skippedProducts.push({ row, error: errorMessage });
       }
     }
 
