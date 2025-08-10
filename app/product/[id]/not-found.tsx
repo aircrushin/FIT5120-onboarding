@@ -13,7 +13,7 @@ export default function NotFound() {
             Product Not Found
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-            The product you're looking for doesn't exist or may have been removed.
+            The product you&apos;re looking for doesn&apos;t exist or may have been removed.
           </p>
           <Link 
             href="/product-search" 
