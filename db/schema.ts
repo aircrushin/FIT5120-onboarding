@@ -61,7 +61,7 @@ export const ingredientTable = pgTable(
 
 // Prod_Ingredient table - associative table for Product-Ingredients
 export const prodIngredientTable = pgTable(
-    'prodIngredient',
+    'prod_ingredient',
     {
         prod_notif_no: varchar('prod_notif_no', {length: 15}).notNull(),
         ing_id: integer('ing_id').notNull(),
