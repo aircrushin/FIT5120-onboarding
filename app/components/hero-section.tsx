@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function HeroSection() {
   return (
     <div className="col-span-1 md:col-span-2 md:row-span-2 bg-gradient-to-br from-red-500 to-orange-600 rounded-2xl p-6 sm:p-8 flex flex-col justify-center items-start text-white relative overflow-hidden hover:from-red-600 hover:to-orange-700 transition-colors duration-300">
@@ -11,9 +13,9 @@ export default function HeroSection() {
         <p className="text-base sm:text-lg md:text-xl text-orange-100 mb-6 max-w-lg">
           Helping young adults in Malaysia make informed cosmetic choices and avoid harmful products.
         </p>
-        <button className="bg-white text-red-600 px-6 py-3 sm:px-8 sm:py-4 rounded-lg font-semibold hover:bg-orange-50 transition-colors duration-200 text-sm sm:text-base">
+        <Link href="/product-search" className="bg-white text-red-600 px-6 py-3 sm:px-8 sm:py-4 rounded-lg font-semibold hover:bg-orange-50 transition-colors duration-200 text-sm sm:text-base">
           Check Product Safety
-        </button>
+        </Link>
       </div>
       <div className="absolute bottom-4 right-4 opacity-20">
         <svg width="60" height="60" viewBox="0 0 100 100" fill="none" className="sm:w-20 sm:h-20 md:w-24 md:h-24">

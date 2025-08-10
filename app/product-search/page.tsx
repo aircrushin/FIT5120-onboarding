@@ -1,127 +1,119 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { Search, AlertTriangle, CheckCircle, Package, Calendar, Building2, Shield, ShieldAlert, ShieldCheck, ShieldX, Info, BookOpen, Lightbulb } from 'lucide-react';
-import { searchProducts, ProductSearchResult, getRandomProducts, FeaturedProduct, getSimilarApprovedProducts, SimilarProductResult } from '../../db/queries/search';
+import { 
+  searchProductsAction, 
+  ProductSearchResult, 
+  getRandomProductsAction, 
+  FeaturedProduct, 
+  getSimilarApprovedProductsAction, 
+  SimilarProductResult 
+} from '../actions/product-actions';
+import { ProductCard } from '../components/ProductCard';
 
-// Mock data based on the database schema
-const mockProducts = [
-  {
-    prod_notif_no: 'NOT(K)240000001',
-    prod_name: 'Revitalizing Face Cream with Vitamin C',
-    prod_brand: 'GlowBeauty',
-    prod_category: 'Facial Care',
-    prod_status_type: 'A' as const, // Approved
-    prod_status_date: '2024-01-15',
-    holder_name: 'Beauty Corp Malaysia',
-    ingredients: [
-      { name: 'Vitamin C', risk_type: 'L' as const, risk_summary: 'Low risk antioxidant' },
-      { name: 'Hyaluronic Acid', risk_type: 'L' as const, risk_summary: 'Safe moisturizing agent' }
-    ]
-  },
-  {
-    prod_notif_no: 'NOT(K)240000002',
-    prod_name: 'Whitening Face Serum',
-    prod_brand: 'FairSkin',
-    prod_category: 'Facial Care',
-    prod_status_type: 'C' as const, // Cancelled
-    prod_status_date: '2024-02-10',
-    holder_name: 'Cosmetic Solutions Sdn Bhd',
-    ingredients: [
-      { name: 'Hydroquinone', risk_type: 'B' as const, risk_summary: 'Banned ingredient - can cause skin irritation' },
-      { name: 'Mercury compounds', risk_type: 'B' as const, risk_summary: 'Toxic heavy metal - health hazard' }
-    ]
-  },
-  {
-    prod_notif_no: 'NOT(K)240000003',
-    prod_name: 'Natural Herbal Face Mask',
-    prod_brand: 'EcoBeauty',
-    prod_category: 'Facial Care',
-    prod_status_type: 'A' as const,
-    prod_status_date: '2024-01-20',
-    holder_name: 'Green Cosmetics Sdn Bhd',
-    ingredients: [
-      { name: 'Tea Tree Oil', risk_type: 'H' as const, risk_summary: 'May cause allergic reactions in sensitive individuals' },
-      { name: 'Aloe Vera', risk_type: 'L' as const, risk_summary: 'Generally safe natural ingredient' }
-    ]
-  },
-  {
-    prod_notif_no: 'NOT(K)240000004',
-    prod_name: 'Anti-Aging Foundation SPF 30',
-    prod_brand: 'LuxCosmetics',
-    prod_category: 'Makeup',
-    prod_status_type: 'C' as const,
-    prod_status_date: '2024-03-05',
-    holder_name: 'Premium Beauty Ltd',
-    ingredients: [
-      { name: 'Lead acetate', risk_type: 'B' as const, risk_summary: 'Toxic lead compound - banned for safety' },
-      { name: 'Titanium dioxide', risk_type: 'L' as const, risk_summary: 'Safe UV protection ingredient' }
-    ]
-  },
-  {
-    prod_notif_no: 'NOT(K)240000005',
-    prod_name: 'Moisturizing Lip Balm',
-    prod_brand: 'SoftLips',
-    prod_category: 'Lip Care',
-    prod_status_type: 'A' as const,
-    prod_status_date: '2024-01-30',
-    holder_name: 'Lip Care International',
-    ingredients: [
-      { name: 'Beeswax', risk_type: 'L' as const, risk_summary: 'Natural safe ingredient' },
-      { name: 'Shea Butter', risk_type: 'L' as const, risk_summary: 'Natural moisturizer' }
-    ]
-  }
-];
 
 // Use the interface from the database queries
 type Product = ProductSearchResult;
 
+// Add this new component after the type definition
+const SafetyRatingsChart = () => {
+  const safetyData = [
+    { label: '85-100', category: 'Excellent', count: 45, color: 'bg-green-500', bgColor: 'bg-green-50', textColor: 'text-green-800', icon: <ShieldCheck className="w-4 h-4" /> },
+    { label: '70-84', category: 'Good', count: 30, color: 'bg-blue-500', bgColor: 'bg-blue-50', textColor: 'text-blue-800', icon: <Shield className="w-4 h-4" /> },
+    { label: '50-69', category: 'Fair', count: 15, color: 'bg-yellow-500', bgColor: 'bg-yellow-50', textColor: 'text-yellow-800', icon: <ShieldAlert className="w-4 h-4" /> },
+    { label: '1-49', category: 'Poor', count: 8, color: 'bg-orange-500', bgColor: 'bg-orange-50', textColor: 'text-orange-800', icon: <ShieldAlert className="w-4 h-4" /> },
+    { label: '0', category: 'Dangerous', count: 2, color: 'bg-red-500', bgColor: 'bg-red-50', textColor: 'text-red-800', icon: <ShieldX className="w-4 h-4" /> },
+  ];
+
+  const maxCount = Math.max(...safetyData.map(item => item.count));
+
+  return (
+    <div className="mt-6">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="p-1 bg-purple-100 rounded-full">
+          <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <h4 className="font-medium text-gray-900">Safety Score Distribution</h4>
+      </div>
+      <div className="space-y-3">
+        {safetyData.map((item, index) => (
+          <div key={index} className={`p-3 ${item.bgColor} rounded-lg border border-gray-200 hover:shadow-sm transition-shadow duration-200`}>
+            <div className="flex items-center gap-3 mb-2">
+              <div className={`${item.textColor} flex-shrink-0`}>
+                {item.icon}
+              </div>
+              <div className="flex-1 flex items-center justify-between">
+                <div>
+                  <span className="text-sm font-medium text-gray-700">{item.label}</span>
+                  <span className={`ml-2 text-sm font-semibold ${item.textColor}`}>{item.category}</span>
+                </div>
+                <span className={`text-lg font-bold ${item.textColor}`}>
+                  {item.count}%
+                </span>
+              </div>
+            </div>
+            <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
+              <div 
+                className={`${item.color} h-full rounded-full transition-all duration-700 ease-out`}
+                style={{ width: `${(item.count / maxCount) * 100}%` }}
+              ></div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+        <div className="flex items-start gap-2">
+          <Info className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-purple-700">
+            Distribution based on analysis of products in our database. Percentages represent relative frequency of each safety score range.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function ProductSearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [featured, setFeatured] = useState<FeaturedProduct[]>([]);
   const [similarByNotif, setSimilarByNotif] = useState<Record<string, SimilarProductResult[]>>({});
   const [loadingSimilar, setLoadingSimilar] = useState<Record<string, boolean>>({});
+  const [searchError, setSearchError] = useState<string>('');
+  
+  const [isSearching, startSearchTransition] = useTransition();
+  const [isLoadingFeatured, startFeaturedTransition] = useTransition();
 
-  const handleSearch = async (query: string) => {
+
+
+  const handleSearch = (query: string) => {
     if (!query.trim()) {
       setSearchResults([]);
       setHasSearched(false);
+      setSearchError('');
       return;
     }
 
-    setIsSearching(true);
     setHasSearched(true);
+    setSearchError('');
 
-    try {
-      // Try to search using the database first
-      const dbResults = await searchProducts(query);
-      
-      if (dbResults.length > 0) {
+    startSearchTransition(async () => {
+      try {
+        const dbResults = await searchProductsAction(query);
         setSearchResults(dbResults);
-      } else {
-        // Fallback to mock data if no database results
-        const mockResults = mockProducts.filter(product => 
-          product.prod_name.toLowerCase().includes(query.toLowerCase()) ||
-          product.prod_notif_no.toLowerCase().includes(query.toLowerCase()) ||
-          product.prod_brand.toLowerCase().includes(query.toLowerCase())
-        );
-        setSearchResults(mockResults);
+        if (dbResults.length === 0) {
+          setSearchError(`No products found for "${query}". Try different keywords.`);
+        }
+      } catch (error) {
+        console.error('Database search failed:', error);
+        setSearchError('Search failed. Please try again later.');
+        setSearchResults([]);
       }
-    } catch (error) {
-      console.error('Database search failed, using mock data:', error);
-      // Fallback to mock data if database search fails
-      const mockResults = mockProducts.filter(product => 
-        product.prod_name.toLowerCase().includes(query.toLowerCase()) ||
-        product.prod_notif_no.toLowerCase().includes(query.toLowerCase()) ||
-        product.prod_brand.toLowerCase().includes(query.toLowerCase())
-      );
-      setSearchResults(mockResults);
-    }
-
-    setIsSearching(false);
+    });
   };
 
   useEffect(() => {
@@ -134,29 +126,16 @@ export default function ProductSearchPage() {
 
   // Load featured products on first render
   useEffect(() => {
-    (async () => {
+    startFeaturedTransition(async () => {
       try {
-        const items = await getRandomProducts(6);
+        const items = await getRandomProductsAction(6);
         if (items.length > 0) {
           setFeatured(items);
-        } else {
-          // Fallback from mock set if DB empty
-          const fallback = mockProducts.slice(0, 6).map(p => ({
-            prod_notif_no: p.prod_notif_no,
-            prod_name: p.prod_name,
-            prod_status_type: p.prod_status_type,
-          }));
-          setFeatured(fallback);
         }
       } catch (e) {
-        const fallback = mockProducts.slice(0, 6).map(p => ({
-          prod_notif_no: p.prod_notif_no,
-          prod_name: p.prod_name,
-          prod_status_type: p.prod_status_type,
-        }));
-        setFeatured(fallback);
+        setFeatured([]);
       }
-    })();
+    });
   }, []);
 
   const getStatusBadge = (status: 'A' | 'C') => {
@@ -181,7 +160,7 @@ export default function ProductSearchPage() {
     if (loadingSimilar[notifNo]) return;
     setLoadingSimilar(prev => ({ ...prev, [notifNo]: true }));
     try {
-      const rows = await getSimilarApprovedProducts(notifNo, 6);
+      const rows = await getSimilarApprovedProductsAction(notifNo, 6);
       setSimilarByNotif(prev => ({ ...prev, [notifNo]: rows }));
     } catch (e) {
       setSimilarByNotif(prev => ({ ...prev, [notifNo]: [] }));
@@ -438,24 +417,109 @@ export default function ProductSearchPage() {
         </div>
 
         {/* Search Section */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search by product name or notification number (e.g., 'Face Cream' or 'NOT(K)240000001')"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-lg"
-            />
-          </div>
-          
-          {isSearching && (
-            <div className="flex items-center justify-center mt-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-              <span className="ml-2 text-gray-600">Searching...</span>
+        <div className="relative mb-8">
+          {/* Floating Search Container */}
+          <div className="relative max-w-4xl mx-auto">
+            {/* Background Glow Effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 via-pink-400/20 to-blue-400/20 rounded-2xl blur-xl transform scale-105"></div>
+            
+            {/* Main Search Container */}
+            <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-6 transition-all duration-300 hover:shadow-3xl hover:bg-white/90">
+              {/* Search Input Container */}
+              <div className="relative group">
+                {/* Animated Border Gradient */}
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-300 group-focus-within:opacity-60"></div>
+                
+                {/* Input Wrapper */}
+                <div className="relative flex items-center bg-white rounded-xl border-2 border-gray-100 group-focus-within:border-transparent transition-all duration-300 shadow-sm group-hover:shadow-md">
+                  {/* Search Icon */}
+                  <div className="pl-5 pr-3">
+                    <Search className={`w-5 h-5 transition-all duration-300 ${
+                      searchQuery 
+                        ? 'text-purple-500 scale-110' 
+                        : 'text-gray-400 group-hover:text-gray-500 group-focus-within:text-purple-500'
+                    }`} />
+                  </div>
+                  
+                  {/* Main Input */}
+                  <input
+                    type="text"
+                    placeholder=" Search by product name or notification number..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-1 py-4 pr-4 text-lg placeholder-gray-400 bg-transparent border-none outline-none focus:ring-0 transition-all duration-300"
+                  />
+                  
+                  {/* Clear Button */}
+                  {searchQuery && (
+                    <div className="pr-4">
+                      <button
+                        onClick={() => {
+                          setSearchQuery('');
+                          setSearchResults([]);
+                          setHasSearched(false);
+                          setSearchError('');
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-200"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Placeholder Text */}
+                <div className="mt-3 flex flex-wrap gap-2 justify-center">
+                  {[
+                    "Try: 'Vitamin C serum'",
+                    "'NOT(K)240000001'",
+                    "'Face cream with retinol'"
+                  ].map((suggestion, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSearchQuery(suggestion.replace(/['"]/g, ''))}
+                      className="px-3 py-1 text-xs text-gray-500 hover:text-purple-400 hover:bg-purple-25 rounded-full transition-all duration-200 border border-gray-200 hover:border-purple-100"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Loading State */}
+              {isSearching && (
+                <div className="flex items-center justify-center mt-6 py-4">
+                  <div className="relative">
+                    {/* Spinning Gradient Ring */}
+                    <div className="w-8 h-8 border-4 border-gray-200 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 w-8 h-8 border-4 border-transparent border-t-purple-500 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+                  </div>
+                  <div className="ml-4">
+                    <div className="text-gray-700 font-medium">Analyzing products...</div>
+                    <div className="text-sm text-gray-500">Checking safety database</div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Enhanced Error State */}
+              {searchError && (
+                <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-yellow-100 rounded-full">
+                      <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-yellow-800">Notice</div>
+                      <div className="text-sm text-yellow-700">{searchError}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            
             </div>
-          )}
+          </div>
         </div>
 
         {/* Results Section */}
@@ -469,6 +533,7 @@ export default function ProductSearchPage() {
                 
                 {searchResults.map((product) => {
                   const safetyStatus = getOverallSafetyStatus(product);
+                  const hasRelevanceScore = !!(product as any).relevanceScore && (product as any).relevanceScore > 0;
                   
                   return (
                     <div key={product.prod_notif_no} className="bg-white rounded-xl shadow-lg overflow-hidden border-l-4 border-l-gray-200">
@@ -523,9 +588,19 @@ export default function ProductSearchPage() {
                               {getStatusBadge(product.prod_status_type)}
                             </div>
                             
-                            <span className="text-sm text-gray-500">
+                                                        <span className="text-sm text-gray-500">
                               {product.prod_notif_no}
                             </span>
+                            
+                            {/* Search Match Indicator */}
+                            {hasRelevanceScore && (
+                              <div className="mt-2">
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-700">
+                                  <Search className="w-3 h-3" />
+                                  Relevant
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -760,200 +835,170 @@ export default function ProductSearchPage() {
         {!hasSearched && (
           <div className="space-y-6">
             {/* Featured Products */}
-            {featured.length > 0 && (
+            {isLoadingFeatured ? (
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                  <span className="ml-2 text-gray-600">Loading featured products...</span>
+                </div>
+              </div>
+            ) : featured.length > 0 && (
               <div className="bg-white rounded-xl shadow-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">You may want to search:</h3>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {featured.map((p) => (
-                    <button
+                    <ProductCard
                       key={p.prod_notif_no}
-                      type="button"
-                      aria-label={`Search for ${p.prod_name}`}
-                      onClick={() => {
+                      product={{
+                        prod_notif_no: p.prod_notif_no,
+                        prod_name: p.prod_name,
+                        prod_status_type: p.prod_status_type
+                      }}
+                      onSearchClick={() => {
                         setSearchQuery(p.prod_notif_no);
                         setHasSearched(true);
                         handleSearch(p.prod_notif_no);
                       }}
-                      className="border rounded-lg p-4 hover:shadow-md transition-shadow w-full text-left focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <div className="font-semibold text-gray-900 line-clamp-2">{p.prod_name}</div>
-                          <div className="text-xs text-gray-500 mt-1">{p.prod_notif_no}</div>
-                        </div>
-                        <div>
-                          {p.prod_status_type === 'A' ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              <CheckCircle className="w-3 h-3" /> Approved
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                              <AlertTriangle className="w-3 h-3" /> Cancelled
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </button>
+                    />
                   ))}
                 </div>
               </div>
             )}
             
 
-            {/* Safety Rating Guide */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Understanding Safety Ratings:</h3>
-              
-              {/* Trust Score Legend */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">Trust Score System:</h4>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
-                  <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
-                    <ShieldCheck className="w-4 h-4 text-green-600 flex-shrink-0" />
-                    <div>
-                      <div className="font-medium text-green-800">85-100</div>
-                      <div className="text-xs text-green-600">Excellent</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-                    <Shield className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                    <div>
-                      <div className="font-medium text-blue-800">70-84</div>
-                      <div className="text-xs text-blue-600">Good</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <ShieldAlert className="w-4 h-4 text-yellow-600 flex-shrink-0" />
-                    <div>
-                      <div className="font-medium text-yellow-800">50-69</div>
-                      <div className="text-xs text-yellow-600">Fair</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 bg-orange-50 border border-orange-200 rounded-lg">
-                    <ShieldAlert className="w-4 h-4 text-orange-600 flex-shrink-0" />
-                    <div>
-                      <div className="font-medium text-orange-800">1-49</div>
-                      <div className="text-xs text-orange-600">Poor</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 bg-red-50 border border-red-200 rounded-lg">
-                    <ShieldX className="w-4 h-4 text-red-600 flex-shrink-0" />
-                    <div>
-                      <div className="font-medium text-red-800">0</div>
-                      <div className="text-xs text-red-600">Dangerous</div>
-                    </div>
-                  </div>
-                </div>
+            {/* Safety Rating Guide and Smart Shopping Guide */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {/* Safety Rating Guide */}
+              <div className="bg-white rounded-xl shadow-lg p-6 lg:col-span-2">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Understanding Safety Ratings:</h3>
+                
+                                 {/* Trust Score Legend */}
+                 <div className="mb-6">
+                   <h4 className="font-medium text-gray-900 mb-3">Trust Score System:</h4>
+                   <div className="space-y-2 text-sm">
+                     <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                       <ShieldCheck className="w-4 h-4 text-green-600 flex-shrink-0" />
+                       <div className="flex-1">
+                         <span className="font-medium text-green-800">85-100</span>
+                         <span className="text-xs text-green-600 ml-2">Excellent</span>
+                       </div>
+                     </div>
+                     <div className="flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                       <Shield className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                       <div className="flex-1">
+                         <span className="font-medium text-blue-800">70-84</span>
+                         <span className="text-xs text-blue-600 ml-2">Good</span>
+                       </div>
+                     </div>
+                     <div className="flex items-center gap-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                       <ShieldAlert className="w-4 h-4 text-yellow-600 flex-shrink-0" />
+                       <div className="flex-1">
+                         <span className="font-medium text-yellow-800">50-69</span>
+                         <span className="text-xs text-yellow-600 ml-2">Fair</span>
+                       </div>
+                     </div>
+                     <div className="flex items-center gap-2 p-2 bg-orange-50 border border-orange-200 rounded-lg">
+                       <ShieldAlert className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                       <div className="flex-1">
+                         <span className="font-medium text-orange-800">1-49</span>
+                         <span className="text-xs text-orange-600 ml-2">Poor</span>
+                       </div>
+                     </div>
+                     <div className="flex items-center gap-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                       <ShieldX className="w-4 h-4 text-red-600 flex-shrink-0" />
+                       <div className="flex-1">
+                         <span className="font-medium text-red-800">0</span>
+                         <span className="text-xs text-red-600 ml-2">Dangerous</span>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+
+
+                {/* Safety Score Distribution Chart */}
+                <SafetyRatingsChart />
               </div>
 
-              {/* Ingredient Risk Legend */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-3">Ingredient Risk Levels:</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                  <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                    <div>
-                      <div className="font-medium text-green-800">Low Risk</div>
-                      <div className="text-xs text-green-600">Generally safe ingredients</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                    <AlertTriangle className="w-4 h-4 text-orange-600 flex-shrink-0" />
-                    <div>
-                      <div className="font-medium text-orange-800">High Risk</div>
-                      <div className="text-xs text-orange-600">May cause reactions</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <ShieldX className="w-4 h-4 text-red-600 flex-shrink-0" />
-                    <div>
-                      <div className="font-medium text-red-800">Banned</div>
-                      <div className="text-xs text-red-600">Prohibited substances</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Smart Shopping Guide */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <BookOpen className="w-6 h-6 text-purple-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Smart Cosmetic Shopping Guide</h3>
-              </div>
-              
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    What to Look For
-                  </h4>
-                  <ul className="space-y-2 text-sm text-gray-700">
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600 font-bold">•</span>
-                      <span>Products with <strong>Approved status</strong> and high trust scores (70+)</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600 font-bold">•</span>
-                      <span>Ingredients you recognize and have used safely before</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600 font-bold">•</span>
-                      <span>Products from <strong>reputable holders</strong> with good track records</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600 font-bold">•</span>
-                      <span>Clear ingredient lists with mostly low-risk components</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600 font-bold">•</span>
-                      <span>Recent approval dates indicating current compliance</span>
-                    </li>
-                  </ul>
+              {/* Smart Shopping Guide */}
+              <div className="bg-white rounded-xl shadow-lg p-6 lg:col-span-2">
+                <div className="flex items-center gap-2 mb-4">
+                  <BookOpen className="w-6 h-6 text-purple-600" />
+                  <h3 className="text-lg font-semibold text-gray-900">Smart Cosmetic Shopping Guide</h3>
                 </div>
                 
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-red-600" />
-                    Red Flags to Avoid
-                  </h4>
-                  <ul className="space-y-2 text-sm text-gray-700">
-                    <li className="flex items-start gap-2">
-                      <span className="text-red-600 font-bold">•</span>
-                      <span><strong>Cancelled products</strong> - never safe to use</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-red-600 font-bold">•</span>
-                      <span>Products containing <strong>banned ingredients</strong> like mercury or hydroquinone</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-red-600 font-bold">•</span>
-                      <span>Trust scores below 50 or multiple high-risk ingredients</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-red-600 font-bold">•</span>
-                      <span>Products with unclear or incomplete ingredient information</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-red-600 font-bold">•</span>
-                      <span>Very old approval dates that may not reflect current standards</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <Lightbulb className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <h5 className="font-semibold text-purple-900 mb-2">Pro Tips for Safe Shopping:</h5>
-                    <div className="text-sm text-purple-800 space-y-1">
-                      <p>• <strong>Patch test first:</strong> Even approved products can cause individual reactions</p>
-                      <p>• <strong>Read beyond marketing:</strong> Focus on the actual ingredient analysis and safety data</p>
-                      <p>• <strong>Check regularly:</strong> Product statuses can change - verify before repurchasing</p>
-                      <p>• <strong>Know your triggers:</strong> Keep a list of ingredients that have caused you problems</p>
+                    <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      What to Look For
+                    </h4>
+                    <ul className="space-y-2 text-sm text-gray-700">
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 font-bold">•</span>
+                        <span>Products with <strong>Approved status</strong> and high trust scores (70+)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 font-bold">•</span>
+                        <span>Ingredients you recognize and have used safely before</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 font-bold">•</span>
+                        <span>Products from <strong>reputable holders</strong> with good track records</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 font-bold">•</span>
+                        <span>Clear ingredient lists with mostly low-risk components</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 font-bold">•</span>
+                        <span>Recent approval dates indicating current compliance</span>
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-red-600" />
+                      Red Flags to Avoid
+                    </h4>
+                    <ul className="space-y-2 text-sm text-gray-700">
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-600 font-bold">•</span>
+                        <span><strong>Cancelled products</strong> - never safe to use</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-600 font-bold">•</span>
+                        <span>Products containing <strong>banned ingredients</strong> like mercury or hydroquinone</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-600 font-bold">•</span>
+                        <span>Trust scores below 50 or multiple high-risk ingredients</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-600 font-bold">•</span>
+                        <span>Products with unclear or incomplete ingredient information</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-600 font-bold">•</span>
+                        <span>Very old approval dates that may not reflect current standards</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <Lightbulb className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h5 className="font-semibold text-purple-900 mb-2">Pro Tips for Safe Shopping:</h5>
+                      <div className="text-sm text-purple-800 space-y-1">
+                        <p>• <strong>Patch test first:</strong> Even approved products can cause individual reactions</p>
+                        <p>• <strong>Read beyond marketing:</strong> Focus on the actual ingredient analysis and safety data</p>
+                        <p>• <strong>Check regularly:</strong> Product statuses can change - verify before repurchasing</p>
+                        <p>• <strong>Know your triggers:</strong> Keep a list of ingredients that have caused you problems</p>
+                      </div>
                     </div>
                   </div>
                 </div>
