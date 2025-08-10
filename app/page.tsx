@@ -1,22 +1,18 @@
-import HeroSection from './components/hero-section';
-import ProblemStatement from './components/problem-statement';
-import { CosmeticSafetyBentoGrid } from '@/components/ui/colorful-bento-grid';
+import { HeroDemo } from "@/components/ui/demo";
+import { CosmeticSafetyBentoGrid } from "@/components/ui/colorful-bento-grid";
 
 export default function Page() {
   return (
-    <div className="min-h-screen bg-neutral-50 text-slate-900 antialiased selection:bg-slate-900 selection:text-white pt-24 sm:pt-28">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 sm:pb-12">
-        {/* Main Bento Grid */}
-        <div className="rounded-3xl border border-slate-200 bg-white shadow-md p-4 sm:p-6 lg:p-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 auto-rows-fr">
-            {/* Hero Section - Takes up 2 columns and 2 rows */}
-            <HeroSection />
-            
-            {/* Problem Statement - 1 column, 2 rows */}
-            <ProblemStatement />
-          </div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-white via-white to-slate-50 text-slate-900 antialiased selection:bg-slate-900 selection:text-white relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-24 -right-24 w-72 h-72 bg-gradient-to-br from-purple-200/50 to-pink-200/50 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-gradient-to-br from-emerald-200/40 to-teal-200/40 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-blue-200/30 to-indigo-200/30 rounded-full blur-3xl" />
+      </div>
 
+      <div className="max-w-7xl mx-auto relative">
+        <HeroDemo />
         {/* Professional Bento Grid for Platform Features */}
         <div className="mt-8 sm:mt-10">
           <CosmeticSafetyBentoGrid />

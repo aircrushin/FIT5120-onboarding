@@ -61,7 +61,7 @@ export default async function AlternativesPage({ params }: AlternativesPageProps
                   holder_name: p.holder_name,
                   holderApprovedCount: p.holderApprovedCount
                 }}
-                href={`/product-search?notif=${encodeURIComponent(p.prod_notif_no)}`}
+                href={`/product/${encodeURIComponent(p.prod_notif_no)}`}
               />
             ))}
           </div>

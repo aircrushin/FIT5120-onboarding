@@ -1,7 +1,13 @@
 import type { Config } from 'tailwindcss';
+const defaultTheme = require("tailwindcss/defaultTheme");
+const colors = require("tailwindcss/colors");
+const {
+  default: flattenColorPalette,
+} = require("tailwindcss/lib/util/flattenColorPalette");
 
 export default {
   content: ['./app/**/*.{ts,tsx}', './content/**/*.mdx', './public/**/*.svg', './components/**/*.{ts,tsx}'],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
@@ -23,14 +29,53 @@ export default {
         'error': 'rgb(var(--color-error) / <alpha-value>)',
         'highlight': 'rgb(var(--color-highlight) / <alpha-value>)',
         'muted': 'rgb(var(--color-muted) / <alpha-value>)',
+        // shadcn/ui colors
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        'primary-foreground': "hsl(var(--primary-foreground))",
+        'secondary-foreground': "hsl(var(--secondary-foreground))",
+        'muted-foreground': "hsl(var(--muted-foreground))",
+        'accent-foreground': "hsl(var(--accent-foreground))",
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
       },
       scale: {
         '101': '1.01',
-      }
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
     },
   },
   future: {
     hoverOnlyWhenSupported: true,
   },
-  plugins: [],
+  plugins: [addVariablesForColors],
 } satisfies Config;
+
+// This plugin adds each Tailwind color as a global CSS variable, e.g. var(--gray-200).
+function addVariablesForColors({ addBase, theme }: any) {
+  let allColors = flattenColorPalette(theme("colors"));
+  let newVars = Object.fromEntries(
+    Object.entries(allColors).map(([key, val]) => [`--${key}`, val])
+  );
+
+  addBase({
+    ":root": newVars,
+  });
+}
