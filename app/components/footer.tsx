@@ -53,7 +53,7 @@ export default function Footer() {
             {/* Company section */}
             <div className='hidden md:flex flex-col gap-3 md:gap-4'>
               <h4 className='uppercase whitespace-nowrap font-semibold text-sm text-slate-500 tracking-wide'>
-                About <span className='inline-flex ml-1 py-1 px-2 bg-slate-100 text-xs rounded-md rotate-1'>FIT5120-TM1</span>
+                About
               </h4>
               <div className="flex gap-3 flex-wrap md:flex-col text-sm text-slate-700 items-start">
                 <Link className='text-slate-600 hover:text-purple-600 whitespace-nowrap font-medium transition-colors duration-200' href="/about">Our Mission</Link>
@@ -61,35 +61,15 @@ export default function Footer() {
                 <Link className='text-slate-600 hover:text-purple-600 whitespace-nowrap font-medium transition-colors duration-200' href="/about">Team</Link>
               </div>
             </div>
-            
-            {/* Compare section */}
-            <div className='hidden md:flex flex-col gap-3 md:gap-4'>
-              <h4 className='uppercase whitespace-nowrap font-semibold text-sm text-slate-500 tracking-wide'>
-                Compare <span className='inline-flex ml-1 py-1 px-2 bg-slate-100 text-xs rounded-md rotate-1'>platforms</span>
-              </h4>
-              <div className="flex flex-col gap-3 text-sm text-slate-700 items-start">
-                <Link className='pointer-events-none text-slate-400 whitespace-nowrap font-medium' href="/">CosDNA</Link>
-                <Link className='pointer-events-none text-slate-400 whitespace-nowrap font-medium' href="/">SkinCarisma</Link>
-                <Link className='pointer-events-none text-slate-400 whitespace-nowrap font-medium' href="/">INCI Beauty</Link>
-              </div>
-            </div>
           </div>
         </div>
       </div>
       
       {/* Bottom section */}
-      <div className="my-6 px-4 md:px-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-sm text-slate-600">
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-8 items-start sm:items-center">
-          <p className="whitespace-nowrap font-medium">
-            ©{currentYear} FIT5120-TM1. Onboarding
-          </p>
-        </div>
-
-        <div className="flex gap-4 items-center">
-        <p className="whitespace-nowrap font-medium">
-            made with love 💗
-          </p>
-        </div>
+      <div className="my-6 px-4 md:px-8 flex justify-center md:items-center text-sm text-slate-600">
+        <p className="whitespace-nowrap font-medium bg-gradient-to-r from-rose-400 via-pink-600 to-purple-700 bg-clip-text text-transparent">
+          made with love 💗 Scentelli © {currentYear}
+        </p>
       </div>
     </footer>
   );
