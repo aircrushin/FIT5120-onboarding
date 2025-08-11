@@ -34,7 +34,7 @@ pnpm install
 
 Create a `.env.local` file in the root directory:
 
-```env
+```env.local
 # For production with SSL (e.g., Vercel Postgres, Neon, etc.)
 # POSTGRES_URL="postgresql://username:password@host:5432/database?sslmode=require"
 ```
