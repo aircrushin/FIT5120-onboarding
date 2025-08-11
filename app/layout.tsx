@@ -65,9 +65,6 @@ export default function RootLayout({
                 transform: scale(1.05) !important;
                 box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4) !important;
               }
-              #dify-chatbot-bubble-window {
-                background: red;
-              }
               #dify-chatbot-bubble-button,
               #dify-chatbot-bubble-window {
                 position: fixed !important;
