@@ -53,7 +53,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               #dify-chatbot-bubble-button {
-                background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%) !important;
+                background: linear-gradient(135deg, #ec4899 0%, #9333ea 100%) !important;
                 color: white !important;
                 border: none !important;
                 transition: all 0.3s ease !important;
@@ -61,15 +61,18 @@ export default function RootLayout({
                 z-index: 9999 !important;
               }
               #dify-chatbot-bubble-button:hover {
-                background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%) !important;
+                background: linear-gradient(135deg, #db2777 0%, #7c3aed 100%) !important;
                 transform: scale(1.05) !important;
                 box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4) !important;
               }
-                #dify-chatbot-bubble-button,
-                #dify-chatbot-bubble-window {
-                  position: fixed !important;
-                  z-index: 9999 !important;
-                }
+              #dify-chatbot-bubble-window {
+                background: red;
+              }
+              #dify-chatbot-bubble-button,
+              #dify-chatbot-bubble-window {
+                position: fixed !important;
+                z-index: 9999 !important;
+              }
             `,
           }}
         />

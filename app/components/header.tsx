@@ -47,7 +47,7 @@ export default function Header() {
           {/* CTA Button */}
           <div className="flex items-center space-x-4">
             <Link href="/product-search">
-            <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg text-sm font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+            <button className="text-white bg-gradient-to-r from-rose-400 to-purple-600 px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg text-sm font-semibold hover:from-rose-500 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
               Search Product
             </button>
             </Link>
