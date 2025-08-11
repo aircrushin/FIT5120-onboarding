@@ -3,7 +3,7 @@ import { Hero } from "@/components/ui/animated-hero"
 
 function HeroDemo() {
   return (
-    <div className="block">
+    <div className="block h-screen">
       <Hero />
     </div>
   );
