@@ -40,10 +40,11 @@ function mapRiskType(csvRiskType: string): string {
   const riskTypeMap: { [key: string]: string } = {
     'Banned': 'B',
     'High Risk': 'H', 
+    'Low Risk': 'L',
     'No Risk': 'L'
   };
   
-  return riskTypeMap[csvRiskType] || 'B'; // Default to 'B' for Banned
+  return riskTypeMap[csvRiskType] || 'U'; // Default to 'B' for Banned
 }
 
 // Function to parse date from DD-MM-YY format to YYYY-MM-DD
@@ -206,7 +207,7 @@ async function insertIngredientsFromCSV() {
       }
       
       // Validate risk type
-      if (!['B', 'H', 'L'].includes(ingredient.ing_risk_type)) {
+      if (!['B', 'H', 'L', 'N'].includes(ingredient.ing_risk_type)) {
         console.warn('Invalid risk type for ingredient:', ingredient);
         return false;
       }

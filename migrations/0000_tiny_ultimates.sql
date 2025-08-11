@@ -8,13 +8,13 @@ CREATE TABLE "ingredient" (
 	"ing_name" text NOT NULL,
 	"ing_risk_summary" text NOT NULL,
 	"ing_risk_type" char(1) NOT NULL,
-	CONSTRAINT "chk_ing_risk_type" CHECK ("ingredient"."ing_risk_type" in ('B', 'H', 'L'))
+	CONSTRAINT "chk_ing_risk_type" CHECK ("ingredient"."ing_risk_type" in ('B', 'H', 'L', 'N'))
 );
 --> statement-breakpoint
-CREATE TABLE "prodIngredient" (
+CREATE TABLE "prod_ingredient" (
 	"prod_notif_no" varchar(15) NOT NULL,
 	"ing_id" integer NOT NULL,
-	CONSTRAINT "prodIngredient_prod_notif_no_ing_id_pk" PRIMARY KEY("prod_notif_no","ing_id")
+	CONSTRAINT "prod_ingredient_prod_notif_no_ing_id_pk" PRIMARY KEY("prod_notif_no","ing_id")
 );
 --> statement-breakpoint
 CREATE TABLE "product" (
@@ -25,9 +25,9 @@ CREATE TABLE "product" (
 	"prod_status_type" char(1) NOT NULL,
 	"prod_status_date" date NOT NULL,
 	"holder_id" integer NOT NULL,
-	CONSTRAINT "chk_prod_status_type" CHECK ("product"."prod_status_type" in ('A', 'C'))
+	CONSTRAINT "chk_prod_status_type" CHECK ("product"."prod_status_type" in ('A', 'C', 'U'))
 );
 --> statement-breakpoint
-ALTER TABLE "prodIngredient" ADD CONSTRAINT "prodIngredient_prod_notif_no_product_prod_notif_no_fk" FOREIGN KEY ("prod_notif_no") REFERENCES "public"."product"("prod_notif_no") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "prodIngredient" ADD CONSTRAINT "prodIngredient_ing_id_ingredient_ing_id_fk" FOREIGN KEY ("ing_id") REFERENCES "public"."ingredient"("ing_id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "prod_ingredient" ADD CONSTRAINT "prod_ingredient_prod_notif_no_product_prod_notif_no_fk" FOREIGN KEY ("prod_notif_no") REFERENCES "public"."product"("prod_notif_no") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "prod_ingredient" ADD CONSTRAINT "prod_ingredient_ing_id_ingredient_ing_id_fk" FOREIGN KEY ("ing_id") REFERENCES "public"."ingredient"("ing_id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product" ADD CONSTRAINT "product_holder_id_holder_holder_id_fk" FOREIGN KEY ("holder_id") REFERENCES "public"."holder"("holder_id") ON DELETE no action ON UPDATE no action;
