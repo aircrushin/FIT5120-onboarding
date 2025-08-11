@@ -41,7 +41,7 @@ export const productTable = pgTable(
             columns: [table.holder_id],
             foreignColumns: [holderTable.holder_id]
         }),
-        check("chk_prod_status_type", sql`${table.prod_status_type} in ('A', 'C')`),
+        check("chk_prod_status_type", sql`${table.prod_status_type} in ('A', 'C', 'U')`),
     ]
 );
 
@@ -55,7 +55,7 @@ export const ingredientTable = pgTable(
         ing_risk_type: char('ing_risk_type', {length: 1}).notNull(), // Risk type (B - Banned, H - High, L - Low)
     },
     (table) => [
-        check("chk_ing_risk_type", sql`${table.ing_risk_type} in ('B', 'H', 'L')`),
+        check("chk_ing_risk_type", sql`${table.ing_risk_type} in ('B', 'H', 'L', 'N')`),
     ]
 );
 

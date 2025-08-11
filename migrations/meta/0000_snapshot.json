@@ -1,5 +1,5 @@
 {
-  "id": "b2e4ac17-dad3-400d-a7f4-cd70b889f55d",
+  "id": "748ae7ce-c234-4c60-ac8f-4103bdc81769",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -66,13 +66,13 @@
       "checkConstraints": {
         "chk_ing_risk_type": {
           "name": "chk_ing_risk_type",
-          "value": "\"ingredient\".\"ing_risk_type\" in ('B', 'H', 'L')"
+          "value": "\"ingredient\".\"ing_risk_type\" in ('B', 'H', 'L', 'N')"
         }
       },
       "isRLSEnabled": false
     },
-    "public.prodIngredient": {
-      "name": "prodIngredient",
+    "public.prod_ingredient": {
+      "name": "prod_ingredient",
       "schema": "",
       "columns": {
         "prod_notif_no": {
@@ -90,9 +90,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "prodIngredient_prod_notif_no_product_prod_notif_no_fk": {
-          "name": "prodIngredient_prod_notif_no_product_prod_notif_no_fk",
-          "tableFrom": "prodIngredient",
+        "prod_ingredient_prod_notif_no_product_prod_notif_no_fk": {
+          "name": "prod_ingredient_prod_notif_no_product_prod_notif_no_fk",
+          "tableFrom": "prod_ingredient",
           "tableTo": "product",
           "columnsFrom": [
             "prod_notif_no"
@@ -103,9 +103,9 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "prodIngredient_ing_id_ingredient_ing_id_fk": {
-          "name": "prodIngredient_ing_id_ingredient_ing_id_fk",
-          "tableFrom": "prodIngredient",
+        "prod_ingredient_ing_id_ingredient_ing_id_fk": {
+          "name": "prod_ingredient_ing_id_ingredient_ing_id_fk",
+          "tableFrom": "prod_ingredient",
           "tableTo": "ingredient",
           "columnsFrom": [
             "ing_id"
@@ -118,8 +118,8 @@
         }
       },
       "compositePrimaryKeys": {
-        "prodIngredient_prod_notif_no_ing_id_pk": {
-          "name": "prodIngredient_prod_notif_no_ing_id_pk",
+        "prod_ingredient_prod_notif_no_ing_id_pk": {
+          "name": "prod_ingredient_prod_notif_no_ing_id_pk",
           "columns": [
             "prod_notif_no",
             "ing_id"
@@ -200,7 +200,7 @@
       "checkConstraints": {
         "chk_prod_status_type": {
           "name": "chk_prod_status_type",
-          "value": "\"product\".\"prod_status_type\" in ('A', 'C')"
+          "value": "\"product\".\"prod_status_type\" in ('A', 'C', 'U')"
         }
       },
       "isRLSEnabled": false
