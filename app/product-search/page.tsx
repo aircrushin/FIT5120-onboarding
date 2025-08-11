@@ -19,6 +19,8 @@ import {
   X,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -37,6 +39,124 @@ import { ProductCard } from "../components/ProductCard";
 
 // Use the interface from the database queries
 type Product = ProductSearchResult;
+
+// Pagination configuration
+const ITEMS_PER_PAGE = 12;
+
+// Pagination Component
+interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  onPageChange: (page: number) => void;
+  isLoading?: boolean;
+}
+
+const Pagination = ({ currentPage, totalPages, totalItems, onPageChange, isLoading = false }: PaginationProps) => {
+  // Generate page numbers to show
+  const getPageNumbers = () => {
+    const pages = [];
+    const showPages = 5; // Show max 5 page numbers at once
+    
+    let start = Math.max(1, currentPage - Math.floor(showPages / 2));
+    let end = Math.min(totalPages, start + showPages - 1);
+    
+    // Adjust start if we're near the end
+    if (end - start < showPages - 1) {
+      start = Math.max(1, end - showPages + 1);
+    }
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
+  };
+
+  const pages = getPageNumbers();
+
+  if (totalPages <= 1) return null;
+
+  return (
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 p-4 bg-white rounded-xl shadow-lg border border-gray-200">
+      {/* Results Info */}
+      <div className="text-sm text-gray-600">
+        Showing {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, totalItems)} - {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)} of {totalItems} results
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex items-center gap-2">
+        {/* Previous Button */}
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1 || isLoading}
+          className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Previous
+        </button>
+
+        {/* First Page */}
+        {pages[0] > 1 && (
+          <>
+            <button
+              onClick={() => onPageChange(1)}
+              disabled={isLoading}
+              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-50 rounded-lg transition-colors"
+            >
+              1
+            </button>
+            {pages[0] > 2 && (
+              <span className="px-2 text-gray-400">...</span>
+            )}
+          </>
+        )}
+
+        {/* Page Numbers */}
+        {pages.map((page) => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            disabled={isLoading}
+            className={`px-3 py-2 text-sm rounded-lg transition-colors disabled:opacity-50 ${
+              currentPage === page
+                ? "bg-purple-600 text-white"
+                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+
+        {/* Last Page */}
+        {pages[pages.length - 1] < totalPages && (
+          <>
+            {pages[pages.length - 1] < totalPages - 1 && (
+              <span className="px-2 text-gray-400">...</span>
+            )}
+            <button
+              onClick={() => onPageChange(totalPages)}
+              disabled={isLoading}
+              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-50 rounded-lg transition-colors"
+            >
+              {totalPages}
+            </button>
+          </>
+        )}
+
+        {/* Next Button */}
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages || isLoading}
+          className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+        >
+          Next
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 // Filter Panel Component
 interface FilterPanelProps {
@@ -487,7 +607,7 @@ const SafetyRatingsChart = () => {
 
 export default function ProductSearchPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [allSearchResults, setAllSearchResults] = useState<Product[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [featured, setFeatured] = useState<FeaturedProduct[]>([]);
   const [similarByNotif, setSimilarByNotif] = useState<
@@ -497,6 +617,10 @@ export default function ProductSearchPage() {
     {}
   );
   const [searchError, setSearchError] = useState<string>("");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   // Filter states
   const [showFilters, setShowFilters] = useState(false);
@@ -518,7 +642,22 @@ export default function ProductSearchPage() {
   const [isLoadingFeatured, startFeaturedTransition] = useTransition();
   const [isLoadingFilters, startFiltersTransition] = useTransition();
 
-  const handleSearch = useCallback((query: string, filters?: ProductFilters) => {
+  // Calculate pagination values
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentPageResults = allSearchResults.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top of results
+    const resultsSection = document.getElementById('search-results');
+    if (resultsSection) {
+      resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const handleSearch = useCallback((query: string, filters?: ProductFilters, resetPage = true) => {
     const filtersToUse = filters || activeFilters;
     const hasAnyFilters = 
       filtersToUse.safetyLevels.length > 0 ||
@@ -528,14 +667,20 @@ export default function ProductSearchPage() {
       filtersToUse.brands.length > 0;
 
     if (!query.trim() && !hasAnyFilters) {
-      setSearchResults([]);
+      setAllSearchResults([]);
       setHasSearched(false);
       setSearchError("");
+      setTotalItems(0);
+      setCurrentPage(1);
       return;
     }
 
     setHasSearched(true);
     setSearchError("");
+    
+    if (resetPage) {
+      setCurrentPage(1);
+    }
 
     startSearchTransition(async () => {
       try {
@@ -547,7 +692,9 @@ export default function ProductSearchPage() {
           dbResults = await searchProductsAction(query);
         }
         
-        setSearchResults(dbResults);
+        setAllSearchResults(dbResults);
+        setTotalItems(dbResults.length);
+        
         if (dbResults.length === 0) {
           if (hasAnyFilters) {
             setShowNoResultsModal(true);
@@ -560,7 +707,8 @@ export default function ProductSearchPage() {
       } catch (error) {
         console.error("Database search failed:", error);
         setSearchError("Search failed. Please try again later.");
-        setSearchResults([]);
+        setAllSearchResults([]);
+        setTotalItems(0);
       }
     });
   }, [activeFilters]);
@@ -598,7 +746,7 @@ export default function ProductSearchPage() {
 
   const applyFilters = (newFilters: ProductFilters) => {
     setActiveFilters(newFilters);
-    handleSearch(searchQuery, newFilters);
+    handleSearch(searchQuery, newFilters, true); // Reset to page 1 when filters change
   };
 
   const clearFilters = () => {
@@ -610,7 +758,7 @@ export default function ProductSearchPage() {
       brands: [],
     };
     setActiveFilters(emptyFilters);
-    handleSearch(searchQuery, emptyFilters);
+    handleSearch(searchQuery, emptyFilters, true); // Reset to page 1 when clearing filters
   };
 
   const hasActiveFilters = 
@@ -719,9 +867,11 @@ export default function ProductSearchPage() {
                       <button
                         onClick={() => {
                           setSearchQuery("");
-                          setSearchResults([]);
+                          setAllSearchResults([]);
                           setHasSearched(false);
                           setSearchError("");
+                          setTotalItems(0);
+                          setCurrentPage(1);
                         }}
                         className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-200"
                       >
@@ -746,7 +896,7 @@ export default function ProductSearchPage() {
                 {/* Placeholder Text */}
                 <div className="mt-3 flex flex-wrap gap-2 justify-center">
                   {[
-                    "Vitamin C",
+                    "Try: Vitamin C",
                     "NOT110307162K",
                     "Face cream",
                   ].map((suggestion, index) => (
@@ -876,17 +1026,23 @@ export default function ProductSearchPage() {
 
         {/* Results Section */}
         {hasSearched && (
-          <div className="space-y-6">
-            {searchResults.length > 0 ? (
+          <div className="space-y-6" id="search-results">
+            {allSearchResults.length > 0 ? (
               <>
-                <h2 className="text-2xl font-semibold text-gray-900">
-                  Found {searchResults.length} result
-                  {searchResults.length !== 1 ? "s" : ""}
-                </h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-semibold text-gray-900">
+                    Found {totalItems} result{totalItems !== 1 ? "s" : ""}
+                  </h2>
+                  {totalPages > 1 && (
+                    <div className="text-sm text-gray-600">
+                      Page {currentPage} of {totalPages}
+                    </div>
+                  )}
+                </div>
 
                 {/* Product Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {searchResults.map((product) => {
+                  {currentPageResults.map((product) => {
                     const trustData = calculateTrustScore(product);
                     
                     return (
@@ -908,35 +1064,46 @@ export default function ProductSearchPage() {
                   })}
                 </div>
 
+                {/* Pagination Component */}
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={totalItems}
+                  onPageChange={handlePageChange}
+                  isLoading={isSearching}
+                />
+
                 {/* Quick Actions Section */}
-                <div className="bg-white rounded-xl shadow-lg p-6 mt-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Quick Actions
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {searchResults.map((product) => (
-                      <div
-                        key={`action-${product.prod_notif_no}`}
-                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
-                      >
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900 text-sm line-clamp-1">
-                            {product.prod_name}
-                          </h4>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {product.prod_notif_no}
-                          </p>
-                        </div>
-                        <Link
-                          href={`/alternatives/${encodeURIComponent(product.prod_notif_no)}`}
-                          className="ml-4 px-3 py-2 text-sm text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
+                {currentPageResults.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-lg p-6 mt-8">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Quick Actions (Current Page)
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {currentPageResults.map((product) => (
+                        <div
+                          key={`action-${product.prod_notif_no}`}
+                          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
                         >
-                          Find Alternatives
-                        </Link>
-                      </div>
-                    ))}
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900 text-sm line-clamp-1">
+                              {product.prod_name}
+                            </h4>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {product.prod_notif_no}
+                            </p>
+                          </div>
+                          <Link
+                            href={`/alternatives/${encodeURIComponent(product.prod_notif_no)}`}
+                            className="ml-4 px-3 py-2 text-sm text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
+                          >
+                            Find Alternatives
+                          </Link>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </>
             ) : (
               <div className="text-center py-12">
