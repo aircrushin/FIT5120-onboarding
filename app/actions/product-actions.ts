@@ -2,7 +2,8 @@
 
 import { db } from '../../db/index';
 import { productTable, holderTable, ingredientTable, prodIngredientTable } from '../../db/schema';
-import { eq, or, like, desc, sql } from 'drizzle-orm';
+import { SQL, eq, or, like, desc, sql } from 'drizzle-orm';
+import { AnyPgColumn } from 'drizzle-orm/pg-core';
 
 export interface ProductSearchResult {
   prod_notif_no: string;
@@ -43,7 +44,7 @@ export async function searchProductsAction(query: string): Promise<ProductSearch
   }
 
   try {
-    const searchQuery = query.trim();
+    const searchQuery = query.trim().toLowerCase();
     const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.length > 0);
     
     // Enhanced search with multiple strategies
@@ -51,19 +52,20 @@ export async function searchProductsAction(query: string): Promise<ProductSearch
     
     // Exact phrase match (highest priority)
     searchConditions.push(
-      like(productTable.prod_name, `%${searchQuery}%`),
-      like(productTable.prod_notif_no, `%${searchQuery}%`),
-      like(productTable.prod_brand, `%${searchQuery}%`),
-      like(productTable.prod_category, `%${searchQuery}%`)
+      like(sql`lower(${productTable.prod_name})`, `%${searchQuery}%`),
+      like(sql`lower(${productTable.prod_notif_no})`, `%${searchQuery}%`),
+      like(sql`lower(${productTable.prod_brand})`, `%${searchQuery}%`),
+      like(sql`lower(${productTable.prod_category})`, `%${searchQuery}%`),
     );
     
     // Individual word matches for multi-word searches
     searchTerms.forEach(term => {
       if (term.length >= 2) { // Only search terms with 2+ characters
         searchConditions.push(
-          like(productTable.prod_name, `%${term}%`),
-          like(productTable.prod_brand, `%${term}%`),
-          like(productTable.prod_category, `%${term}%`)
+          like(sql`lower(${productTable.prod_name})`, `%${term}%`),
+          like(sql`lower(${productTable.prod_notif_no})`, `%${term}%`),
+          like(sql`lower(${productTable.prod_brand})`, `%${term}%`),
+          like(sql`lower(${productTable.prod_category})`, `%${term}%`),
         );
       }
     });
