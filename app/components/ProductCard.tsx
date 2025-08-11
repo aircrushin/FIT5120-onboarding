@@ -34,20 +34,15 @@ export function ProductCard({ product, href, isReference = false, onSearchClick 
             </div>
             <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">{product.prod_notif_no}</div>
           </div>
-          {!isReference && !onSearchClick && (
-            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-              <CheckCircle className="w-3 h-3" /> Approved
-            </span>
-          )}
-          {(isReference || onSearchClick) && product.prod_status_type && (
+          {product.prod_status_type ? (
             <div className="flex items-center gap-2">
               {product.prod_status_type === 'A' ? (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                  <CheckCircle className="w-4 h-4" /> Approved
+                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 ${isReference ? 'text-sm' : 'text-xs'}`}>
+                  <CheckCircle className={`${isReference ? 'w-4 h-4' : 'w-3 h-3'}`} /> Approved
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-                  <AlertTriangle className="w-4 h-4" /> Cancelled
+                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 ${isReference ? 'text-sm' : 'text-xs'}`}>
+                  <AlertTriangle className={`${isReference ? 'w-4 h-4' : 'w-3 h-3'}`} /> Cancelled
                 </span>
               )}
               {product.prod_status_date && isReference && (
@@ -56,7 +51,7 @@ export function ProductCard({ product, href, isReference = false, onSearchClick 
                 </div>
               )}
             </div>
-          )}
+          ) : null}
         </div>
         
         <div className="flex flex-wrap gap-2 text-sm text-neutral-600 dark:text-neutral-400 mb-3">

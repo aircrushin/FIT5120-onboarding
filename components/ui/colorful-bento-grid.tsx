@@ -27,7 +27,7 @@ export const CosmeticSafetyBentoGrid = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 md:items-start md:justify-start gap-4 ">
         
-        <Link href='' className="md:col-span-2 overflow-hidden hover:scale-101 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.2)] hover:rotate-1 transition-all duration-200 ease-in-out h-[330px] overflow-hidden relative bg-accent/20 rounded-xl flex flex-row items-center gap-8 justify-between px-3 pt-3 pb-6">
+        <Link href='' className="md:col-span-2 hover:scale-101 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.2)] hover:rotate-1 transition-all duration-200 ease-in-out h-[330px] overflow-hidden relative bg-accent/20 rounded-xl flex flex-row items-center gap-8 justify-between px-3 pt-3 pb-6">
           <div className='relative flex flex-col items-start justify-center ml-4 gap-0 z-10'>
             <p className='-rotate-1 ml-4 mb-1 text-base-content'>AI-Powered Analysis</p>
             <h3 className='-rotate-1 text-2xl whitespace-nowrap font-semibold text-center px-6 py-2 bg-base-content/90 text-white rounded-full'>Ingredient Scanner</h3>
