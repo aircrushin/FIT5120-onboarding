@@ -2,7 +2,7 @@
 
 import { db } from '../../db/index';
 import { productTable, holderTable, ingredientTable, prodIngredientTable } from '../../db/schema';
-import { SQL, eq, or, like, desc, sql } from 'drizzle-orm';
+import { SQL, eq, or, like, desc, sql, and } from 'drizzle-orm';
 import { AnyPgColumn } from 'drizzle-orm/pg-core';
 
 export interface ProductSearchResult {
@@ -257,102 +257,269 @@ export async function getAllProductsAction(): Promise<ProductSearchResult[]> {
 }
 
 export async function getSimilarApprovedProductsAction(referenceNotifNo: string, limit: number = 6): Promise<SimilarProductResult[]> {
-  if (!referenceNotifNo || !referenceNotifNo.trim()) {
-    return [];
-  }
-
+  
   try {
-    // Find the reference product to get its category
-    const ref = await db
-      .select({
-        prod_notif_no: productTable.prod_notif_no,
-        prod_category: productTable.prod_category,
-        prod_brand: productTable.prod_brand,
-      })
+    const referenceProduct = await db
+      .select()
       .from(productTable)
-      .where(eq(productTable.prod_notif_no, referenceNotifNo.trim()))
+      .where(eq(productTable.prod_notif_no, referenceNotifNo))
       .limit(1);
 
-    if (ref.length === 0) return [];
-    const refCategory = ref[0].prod_category;
-    const refBrand = ref[0].prod_brand;
-
-    // Subquery: approved counts per holder (trusted brands heuristic)
-    const approvedCounts = db
-      .select({
-        holder_id: productTable.holder_id,
-        approved_count: sql<number>`COUNT(*)`.as('approved_count'),
-      })
-      .from(productTable)
-      .where(eq(productTable.prod_status_type, 'A'))
-      .groupBy(productTable.holder_id)
-      .as('approved_counts');
-
-    // Helper to select approved products with dynamic where clause
-    const selectApproved = async (whereExpr: any, take: number) => {
-      const rows = await db
-        .select({
-          prod_notif_no: productTable.prod_notif_no,
-          prod_name: productTable.prod_name,
-          prod_brand: productTable.prod_brand,
-          prod_category: productTable.prod_category,
-          prod_status_type: productTable.prod_status_type,
-          prod_status_date: productTable.prod_status_date,
-          holder_name: holderTable.holder_name,
-          holderApprovedCount: sql<number>`COALESCE(${approvedCounts.approved_count}, 0)`,
-        })
-        .from(productTable)
-        .leftJoin(holderTable, eq(productTable.holder_id, holderTable.holder_id))
-        .leftJoin(approvedCounts, eq(productTable.holder_id, approvedCounts.holder_id))
-        .where(whereExpr)
-        .orderBy(desc(sql`COALESCE(${approvedCounts.approved_count}, 0)`), desc(productTable.prod_status_date))
-        .limit(take);
-
-      return rows.map((r) => ({
-        prod_notif_no: r.prod_notif_no,
-        prod_name: r.prod_name,
-        prod_brand: r.prod_brand,
-        prod_category: r.prod_category,
-        prod_status_type: r.prod_status_type as 'A' | 'C',
-        prod_status_date: r.prod_status_date,
-        holder_name: r.holder_name || 'Unknown Holder',
-        holderApprovedCount: Number(r.holderApprovedCount ?? 0),
-      }));
-    };
-
-    // Tier 1: Same category
-    let results = await selectApproved(
-      sql`${productTable.prod_status_type} = 'A' AND ${productTable.prod_category} = ${refCategory} AND ${productTable.prod_notif_no} <> ${referenceNotifNo}`,
-      limit
-    );
-    if (results.length > 0) return results;
-
-    // Tier 2: Same brand
-    results = await selectApproved(
-      sql`${productTable.prod_status_type} = 'A' AND ${productTable.prod_brand} = ${refBrand} AND ${productTable.prod_notif_no} <> ${referenceNotifNo}`,
-      limit
-    );
-    if (results.length > 0) return results;
-
-    // Tier 3: Fuzzy category token
-    const token = refCategory?.split(/\s|\/|-/)?.filter((t) => t.length >= 3)?.[0] ?? '';
-    if (token) {
-      results = await selectApproved(
-        sql`${productTable.prod_status_type} = 'A' AND ${productTable.prod_notif_no} <> ${referenceNotifNo} AND ${productTable.prod_category} ILIKE ${'%' + token + '%'}`,
-        limit
-      );
-      if (results.length > 0) return results;
+    if (referenceProduct.length === 0) {
+      return [];
     }
 
-    // Tier 4: Any approved (global trusted brands)
-    results = await selectApproved(
-      sql`${productTable.prod_status_type} = 'A' AND ${productTable.prod_notif_no} <> ${referenceNotifNo}`,
-      limit
-    );
-    return results;
+    const refCategory = referenceProduct[0].prod_category;
+
+    const products = await db
+      .select({
+        prod_notif_no: productTable.prod_notif_no,
+        prod_name: productTable.prod_name,
+        prod_brand: productTable.prod_brand,
+        prod_category: productTable.prod_category,
+        prod_status_type: productTable.prod_status_type,
+        prod_status_date: productTable.prod_status_date,
+        holder_name: holderTable.holder_name,
+      })
+      .from(productTable)
+      .leftJoin(holderTable, eq(productTable.holder_id, holderTable.holder_id))
+      .where(
+        sql`${productTable.prod_category} = ${refCategory} AND ${productTable.prod_status_type} = 'A' AND ${productTable.prod_notif_no} != ${referenceNotifNo}`
+      )
+      .orderBy(desc(productTable.prod_status_date))
+      .limit(limit);
+
+    return products.map(product => ({
+      prod_notif_no: product.prod_notif_no,
+      prod_name: product.prod_name,
+      prod_brand: product.prod_brand,
+      prod_category: product.prod_category,
+      prod_status_type: product.prod_status_type as 'A' | 'C',
+      prod_status_date: product.prod_status_date,
+      holder_name: product.holder_name || 'Unknown Holder',
+      holderApprovedCount: 0, // Set default value since we're not calculating this in the new implementation
+    }));
   } catch (error) {
-    console.error('Error getting similar approved products:', error);
-    throw new Error('Failed to get similar products');
+    console.error('Error getting similar products:', error);
+    return [];
+  }
+}
+
+export interface FilterOptions {
+  ingredients: Array<{
+    ing_id: number;
+    ing_name: string;
+    ing_risk_type: 'B' | 'H' | 'L' | 'N';
+  }>;
+  categories: string[];
+  brands: string[];
+}
+
+export interface ProductFilters {
+  safetyLevels: ('safe' | 'unsafe' | 'risky')[];
+  ingredientIds: number[];
+  approvalStatuses: ('A' | 'C')[];
+  categories: string[];
+  brands: string[];
+}
+
+export async function getFilterOptionsAction(): Promise<FilterOptions> {
+  try {
+    // Get all ingredients
+    const ingredients = await db
+      .select({
+        ing_id: ingredientTable.ing_id,
+        ing_name: ingredientTable.ing_name,
+        ing_risk_type: ingredientTable.ing_risk_type,
+      })
+      .from(ingredientTable)
+      .orderBy(ingredientTable.ing_name);
+
+    // Get all unique categories
+    const categories = await db
+      .selectDistinct({
+        category: productTable.prod_category,
+      })
+      .from(productTable)
+      .orderBy(productTable.prod_category);
+
+    // Get all unique brands
+    const brands = await db
+      .selectDistinct({
+        brand: productTable.prod_brand,
+      })
+      .from(productTable)
+      .orderBy(productTable.prod_brand);
+
+    return {
+      ingredients: ingredients.map(ing => ({
+        ing_id: ing.ing_id,
+        ing_name: ing.ing_name,
+        ing_risk_type: ing.ing_risk_type as 'B' | 'H' | 'L' | 'N',
+      })),
+      categories: categories.map(c => c.category),
+      brands: brands.map(b => b.brand),
+    };
+  } catch (error) {
+    console.error('Error getting filter options:', error);
+    return {
+      ingredients: [],
+      categories: [],
+      brands: [],
+    };
+  }
+}
+
+export async function getFilteredProductsAction(filters: ProductFilters, searchQuery?: string): Promise<ProductSearchResult[]> {
+  try {
+    // Build where conditions
+    const whereConditions = [];
+
+    // Apply search query if provided
+    if (searchQuery && searchQuery.trim()) {
+      const query = searchQuery.trim().toLowerCase();
+      const searchTerms = query.split(' ').filter(term => term.length > 0);
+      
+      const searchConditions = [];
+      searchConditions.push(
+        like(sql`lower(${productTable.prod_name})`, `%${query}%`),
+        like(sql`lower(${productTable.prod_notif_no})`, `%${query}%`),
+        like(sql`lower(${productTable.prod_brand})`, `%${query}%`),
+        like(sql`lower(${productTable.prod_category})`, `%${query}%`),
+      );
+      
+      searchTerms.forEach(term => {
+        if (term.length >= 2) {
+          searchConditions.push(
+            like(sql`lower(${productTable.prod_name})`, `%${term}%`),
+            like(sql`lower(${productTable.prod_notif_no})`, `%${term}%`),
+            like(sql`lower(${productTable.prod_brand})`, `%${term}%`),
+            like(sql`lower(${productTable.prod_category})`, `%${term}%`),
+          );
+        }
+      });
+      
+      whereConditions.push(or(...searchConditions));
+    }
+
+    // Apply approval status filter
+    if (filters.approvalStatuses.length > 0 && filters.approvalStatuses.length < 2) {
+      whereConditions.push(
+        sql`${productTable.prod_status_type} IN (${sql.join(filters.approvalStatuses.map(status => sql`${status}`), sql`, `)})`
+      );
+    }
+
+    // Apply category filter
+    if (filters.categories.length > 0) {
+      whereConditions.push(
+        sql`${productTable.prod_category} IN (${sql.join(filters.categories.map(cat => sql`${cat}`), sql`, `)})`
+      );
+    }
+
+    // Apply brand filter
+    if (filters.brands.length > 0) {
+      whereConditions.push(
+        sql`${productTable.prod_brand} IN (${sql.join(filters.brands.map(brand => sql`${brand}`), sql`, `)})`
+      );
+    }
+
+    // Get products with base filters
+    const baseQuery = db
+      .select({
+        prod_notif_no: productTable.prod_notif_no,
+        prod_name: productTable.prod_name,
+        prod_brand: productTable.prod_brand,
+        prod_category: productTable.prod_category,
+        prod_status_type: productTable.prod_status_type,
+        prod_status_date: productTable.prod_status_date,
+        holder_name: holderTable.holder_name,
+      })
+      .from(productTable)
+      .leftJoin(holderTable, eq(productTable.holder_id, holderTable.holder_id));
+
+    const products = whereConditions.length > 0
+      ? await baseQuery.where(and(...whereConditions)).orderBy(desc(productTable.prod_status_date))
+      : await baseQuery.orderBy(desc(productTable.prod_status_date));
+
+    // Get products with their ingredients
+    const productsWithIngredients: ProductSearchResult[] = await Promise.all(
+      products.map(async (product) => {
+        const ingredients = await db
+          .select({
+            name: ingredientTable.ing_name,
+            risk_type: ingredientTable.ing_risk_type,
+            risk_summary: ingredientTable.ing_risk_summary,
+          })
+          .from(prodIngredientTable)
+          .leftJoin(ingredientTable, eq(prodIngredientTable.ing_id, ingredientTable.ing_id))
+          .where(eq(prodIngredientTable.prod_notif_no, product.prod_notif_no));
+
+        return {
+          ...product,
+          prod_status_type: product.prod_status_type as 'A' | 'C',
+          holder_name: product.holder_name || 'Unknown Holder',
+          ingredients: ingredients.map(ing => ({
+            name: ing.name || '',
+            risk_type: (ing.risk_type as 'L' | 'H' | 'B') || 'L',
+            risk_summary: ing.risk_summary || '',
+          })),
+        };
+      })
+    );
+
+    // Apply additional filters that require ingredient data
+    let filteredProducts = productsWithIngredients;
+
+    // Apply ingredient filter
+    if (filters.ingredientIds.length > 0) {
+      const productsWithIngredientData = await Promise.all(
+        filteredProducts.map(async (product) => {
+          const productIngredients = await db
+            .select({ ing_id: prodIngredientTable.ing_id })
+            .from(prodIngredientTable)
+            .where(eq(prodIngredientTable.prod_notif_no, product.prod_notif_no));
+          
+          const productIngredientIds = productIngredients.map(pi => pi.ing_id);
+          const hasMatchingIngredient = filters.ingredientIds.some(filterId => 
+            productIngredientIds.includes(filterId)
+          );
+          
+          return { product, hasMatchingIngredient };
+        })
+      );
+      
+      filteredProducts = productsWithIngredientData
+        .filter(item => item.hasMatchingIngredient)
+        .map(item => item.product);
+    }
+
+    // Apply safety level filter
+    if (filters.safetyLevels.length > 0 && filters.safetyLevels.length < 3) {
+      filteredProducts = filteredProducts.filter(product => {
+        // Calculate safety level based on status and ingredients
+        let safetyLevel: 'safe' | 'unsafe' | 'risky';
+        
+        if (product.prod_status_type === 'C') {
+          safetyLevel = 'unsafe';
+        } else {
+          const hasBannedIngredients = product.ingredients.some(ing => ing.risk_type === 'B');
+          const hasHighRiskIngredients = product.ingredients.some(ing => ing.risk_type === 'H');
+          
+          if (hasBannedIngredients || hasHighRiskIngredients) {
+            safetyLevel = 'risky';
+          } else {
+            safetyLevel = 'safe';
+          }
+        }
+        
+        return filters.safetyLevels.includes(safetyLevel);
+      });
+    }
+
+    return filteredProducts;
+  } catch (error) {
+    console.error('Error getting filtered products:', error);
+    throw new Error('Failed to get filtered products');
   }
 }
 

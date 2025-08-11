@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useCallback } from "react";
 import {
   Search,
   AlertTriangle,
@@ -15,6 +15,10 @@ import {
   Info,
   BookOpen,
   Lightbulb,
+  Filter,
+  X,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -24,11 +28,342 @@ import {
   FeaturedProduct,
   getSimilarApprovedProductsAction,
   SimilarProductResult,
+  getFilterOptionsAction,
+  getFilteredProductsAction,
+  FilterOptions,
+  ProductFilters,
 } from "../actions/product-actions";
 import { ProductCard } from "../components/ProductCard";
 
 // Use the interface from the database queries
 type Product = ProductSearchResult;
+
+// Filter Panel Component
+interface FilterPanelProps {
+  filterOptions: FilterOptions;
+  activeFilters: ProductFilters;
+  onFiltersChange: (filters: ProductFilters) => void;
+  isLoading: boolean;
+}
+
+const FilterPanel = ({ filterOptions, activeFilters, onFiltersChange, isLoading }: FilterPanelProps) => {
+  const [localFilters, setLocalFilters] = useState<ProductFilters>(activeFilters);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    safety: true,
+    approval: true,
+    ingredients: false,
+    categories: false,
+    brands: false,
+  });
+  const [searchTerms, setSearchTerms] = useState<Record<string, string>>({
+    ingredients: '',
+    categories: '',
+    brands: '',
+  });
+
+  useEffect(() => {
+    setLocalFilters(activeFilters);
+  }, [activeFilters]);
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
+  const updateFilters = (updates: Partial<ProductFilters>) => {
+    const newFilters = { ...localFilters, ...updates };
+    setLocalFilters(newFilters);
+    onFiltersChange(newFilters);
+  };
+
+  const toggleArrayValue = <T,>(array: T[], value: T): T[] => {
+    return array.includes(value)
+      ? array.filter(item => item !== value)
+      : [...array, value];
+  };
+
+  const updateSearchTerm = (section: string, term: string) => {
+    setSearchTerms(prev => ({
+      ...prev,
+      [section]: term,
+    }));
+  };
+
+  const filterIngredients = () => {
+    if (!searchTerms.ingredients.trim()) return filterOptions.ingredients;
+    return filterOptions.ingredients.filter(ingredient =>
+      ingredient.ing_name.toLowerCase().includes(searchTerms.ingredients.toLowerCase())
+    );
+  };
+
+  const filterCategories = () => {
+    if (!searchTerms.categories.trim()) return filterOptions.categories;
+    return filterOptions.categories.filter(category =>
+      category.toLowerCase().includes(searchTerms.categories.toLowerCase())
+    );
+  };
+
+  const filterBrands = () => {
+    if (!searchTerms.brands.trim()) return filterOptions.brands;
+    return filterOptions.brands.filter(brand =>
+      brand.toLowerCase().includes(searchTerms.brands.toLowerCase())
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+        <span className="ml-2 text-gray-600">Loading filters...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Safety Level Filter */}
+      <div>
+        <button
+          onClick={() => toggleSection('safety')}
+          className="flex items-center justify-between w-full text-left font-medium text-gray-900 mb-3"
+        >
+          Safety Level
+          {expandedSections.safety ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+        </button>
+        {expandedSections.safety && (
+          <div className="space-y-2">
+            {[
+              { value: 'safe' as const, label: 'Approved (Safe)', icon: <ShieldCheck className="w-4 h-4 text-green-600" />, color: 'green' },
+              { value: 'risky' as const, label: 'Approved but contains risk ingredients', icon: <ShieldAlert className="w-4 h-4 text-yellow-600" />, color: 'yellow' },
+              { value: 'unsafe' as const, label: 'Cancelled (Unsafe/High-risk)', icon: <ShieldX className="w-4 h-4 text-red-600" />, color: 'red' },
+            ].map((option) => (
+              <label key={option.value} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={localFilters.safetyLevels.includes(option.value)}
+                  onChange={() => updateFilters({
+                    safetyLevels: toggleArrayValue(localFilters.safetyLevels, option.value)
+                  })}
+                  className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                />
+                {option.icon}
+                <span className="text-sm text-gray-700">{option.label}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Approval Status Filter */}
+      <div>
+        <button
+          onClick={() => toggleSection('approval')}
+          className="flex items-center justify-between w-full text-left font-medium text-gray-900 mb-3"
+        >
+          Approval Status
+          {expandedSections.approval ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+        </button>
+        {expandedSections.approval && (
+          <div className="space-y-2">
+            {[
+              { value: 'A' as const, label: 'Approved', icon: <CheckCircle className="w-4 h-4 text-green-600" /> },
+              { value: 'C' as const, label: 'Cancelled', icon: <X className="w-4 h-4 text-red-600" /> },
+            ].map((option) => (
+              <label key={option.value} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={localFilters.approvalStatuses.includes(option.value)}
+                  onChange={() => updateFilters({
+                    approvalStatuses: toggleArrayValue(localFilters.approvalStatuses, option.value)
+                  })}
+                  className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                />
+                {option.icon}
+                <span className="text-sm text-gray-700">{option.label}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Ingredients Filter */}
+      <div>
+        <button
+          onClick={() => toggleSection('ingredients')}
+          className="flex items-center justify-between w-full text-left font-medium text-gray-900 mb-3"
+        >
+          Ingredients ({filterOptions.ingredients.length})
+          {expandedSections.ingredients ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+        </button>
+        {expandedSections.ingredients && (
+          <div className="space-y-3">
+            {/* Search input for ingredients */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search ingredients..."
+                value={searchTerms.ingredients}
+                onChange={(e) => updateSearchTerm('ingredients', e.target.value)}
+                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div className="max-h-48 overflow-y-auto space-y-1">
+              {filterIngredients().map((ingredient) => (
+                <label key={ingredient.ing_id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={localFilters.ingredientIds.includes(ingredient.ing_id)}
+                    onChange={() => updateFilters({
+                      ingredientIds: toggleArrayValue(localFilters.ingredientIds, ingredient.ing_id)
+                    })}
+                    className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                  />
+                  <div className="flex-1">
+                    <span className="text-sm text-gray-700">{ingredient.ing_name}</span>
+                    <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${
+                      ingredient.ing_risk_type === 'B' ? 'bg-red-100 text-red-700' :
+                      ingredient.ing_risk_type === 'H' ? 'bg-orange-100 text-orange-700' :
+                      ingredient.ing_risk_type === 'L' ? 'bg-green-100 text-green-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {ingredient.ing_risk_type === 'B' ? 'Banned' :
+                       ingredient.ing_risk_type === 'H' ? 'High Risk' :
+                       ingredient.ing_risk_type === 'L' ? 'Low Risk' :
+                       'Normal'}
+                    </span>
+                  </div>
+                </label>
+              ))}
+              {filterIngredients().length === 0 && (
+                <div className="text-center py-4 text-gray-500 text-sm">
+                  No ingredients found matching &quot;{searchTerms.ingredients}&quot;
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Categories Filter */}
+      <div>
+        <button
+          onClick={() => toggleSection('categories')}
+          className="flex items-center justify-between w-full text-left font-medium text-gray-900 mb-3"
+        >
+          Categories ({filterOptions.categories.length})
+          {expandedSections.categories ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+        </button>
+        {expandedSections.categories && (
+          <div className="space-y-3">
+            {/* Search input for categories */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search categories..."
+                value={searchTerms.categories}
+                onChange={(e) => updateSearchTerm('categories', e.target.value)}
+                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div className="max-h-48 overflow-y-auto space-y-1">
+              {filterCategories().map((category) => (
+                <label key={category} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={localFilters.categories.includes(category)}
+                    onChange={() => updateFilters({
+                      categories: toggleArrayValue(localFilters.categories, category)
+                    })}
+                    className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                  />
+                  <span className="text-sm text-gray-700">{category}</span>
+                </label>
+              ))}
+              {filterCategories().length === 0 && (
+                <div className="text-center py-4 text-gray-500 text-sm">
+                  No categories found matching &quot;{searchTerms.categories}&quot;
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Brands Filter */}
+      <div>
+        <button
+          onClick={() => toggleSection('brands')}
+          className="flex items-center justify-between w-full text-left font-medium text-gray-900 mb-3"
+        >
+          Brands ({filterOptions.brands.length})
+          {expandedSections.brands ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+        </button>
+        {expandedSections.brands && (
+          <div className="space-y-3">
+            {/* Search input for brands */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search brands..."
+                value={searchTerms.brands}
+                onChange={(e) => updateSearchTerm('brands', e.target.value)}
+                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div className="max-h-48 overflow-y-auto space-y-1">
+              {filterBrands().map((brand) => (
+                <label key={brand} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={localFilters.brands.includes(brand)}
+                    onChange={() => updateFilters({
+                      brands: toggleArrayValue(localFilters.brands, brand)
+                    })}
+                    className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                  />
+                  <span className="text-sm text-gray-700">{brand}</span>
+                </label>
+              ))}
+              {filterBrands().length === 0 && (
+                <div className="text-center py-4 text-gray-500 text-sm">
+                  No brands found matching &quot;{searchTerms.brands}&quot;
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 // Add this new component after the type definition
 const SafetyRatingsChart = () => {
@@ -163,11 +498,36 @@ export default function ProductSearchPage() {
   );
   const [searchError, setSearchError] = useState<string>("");
 
+  // Filter states
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    ingredients: [],
+    categories: [],
+    brands: [],
+  });
+  const [activeFilters, setActiveFilters] = useState<ProductFilters>({
+    safetyLevels: [],
+    ingredientIds: [],
+    approvalStatuses: [],
+    categories: [],
+    brands: [],
+  });
+  const [showNoResultsModal, setShowNoResultsModal] = useState(false);
+
   const [isSearching, startSearchTransition] = useTransition();
   const [isLoadingFeatured, startFeaturedTransition] = useTransition();
+  const [isLoadingFilters, startFiltersTransition] = useTransition();
 
-  const handleSearch = (query: string) => {
-    if (!query.trim()) {
+  const handleSearch = useCallback((query: string, filters?: ProductFilters) => {
+    const filtersToUse = filters || activeFilters;
+    const hasAnyFilters = 
+      filtersToUse.safetyLevels.length > 0 ||
+      filtersToUse.ingredientIds.length > 0 ||
+      filtersToUse.approvalStatuses.length > 0 ||
+      filtersToUse.categories.length > 0 ||
+      filtersToUse.brands.length > 0;
+
+    if (!query.trim() && !hasAnyFilters) {
       setSearchResults([]);
       setHasSearched(false);
       setSearchError("");
@@ -179,12 +539,23 @@ export default function ProductSearchPage() {
 
     startSearchTransition(async () => {
       try {
-        const dbResults = await searchProductsAction(query);
+        let dbResults: Product[];
+        
+        if (hasAnyFilters) {
+          dbResults = await getFilteredProductsAction(filtersToUse, query.trim() || undefined);
+        } else {
+          dbResults = await searchProductsAction(query);
+        }
+        
         setSearchResults(dbResults);
         if (dbResults.length === 0) {
-          setSearchError(
-            `No products found for "${query}". Try different keywords.`
-          );
+          if (hasAnyFilters) {
+            setShowNoResultsModal(true);
+          } else {
+            setSearchError(
+              `No products found for "${query}". Try different keywords.`
+            );
+          }
         }
       } catch (error) {
         console.error("Database search failed:", error);
@@ -192,7 +563,7 @@ export default function ProductSearchPage() {
         setSearchResults([]);
       }
     });
-  };
+  }, [activeFilters]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -200,9 +571,9 @@ export default function ProductSearchPage() {
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  }, [searchQuery, activeFilters, handleSearch]);
 
-  // Load featured products on first render
+  // Load featured products and filter options on first render
   useEffect(() => {
     startFeaturedTransition(async () => {
       try {
@@ -214,7 +585,40 @@ export default function ProductSearchPage() {
         setFeatured([]);
       }
     });
+
+    startFiltersTransition(async () => {
+      try {
+        const options = await getFilterOptionsAction();
+        setFilterOptions(options);
+      } catch (e) {
+        console.error("Failed to load filter options:", e);
+      }
+    });
   }, []);
+
+  const applyFilters = (newFilters: ProductFilters) => {
+    setActiveFilters(newFilters);
+    handleSearch(searchQuery, newFilters);
+  };
+
+  const clearFilters = () => {
+    const emptyFilters: ProductFilters = {
+      safetyLevels: [],
+      ingredientIds: [],
+      approvalStatuses: [],
+      categories: [],
+      brands: [],
+    };
+    setActiveFilters(emptyFilters);
+    handleSearch(searchQuery, emptyFilters);
+  };
+
+  const hasActiveFilters = 
+    activeFilters.safetyLevels.length > 0 ||
+    activeFilters.ingredientIds.length > 0 ||
+    activeFilters.approvalStatuses.length > 0 ||
+    activeFilters.categories.length > 0 ||
+    activeFilters.brands.length > 0;
 
   const calculateTrustScore = (product: Product) => {
     let score = 100;
@@ -403,6 +807,72 @@ export default function ProductSearchPage() {
             </div>
           </div>
         </div>
+
+        {/* Filter Section */}
+        <div className="mb-6">
+          <div className="flex items-center gap-4 mb-4">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all duration-200 ${
+                showFilters
+                  ? "bg-purple-100 border-purple-300 text-purple-700"
+                  : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <Filter className="w-4 h-4" />
+              Filters
+              {showFilters ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </button>
+            
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <X className="w-3 h-3" />
+                Clear Filters
+              </button>
+            )}
+          </div>
+
+          {showFilters && (
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+              <FilterPanel
+                filterOptions={filterOptions}
+                activeFilters={activeFilters}
+                onFiltersChange={applyFilters}
+                isLoading={isLoadingFilters}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* No Results Modal */}
+        {showNoResultsModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 max-w-md mx-4 shadow-2xl">
+              <div className="text-center">
+                <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  No Products Found
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  No products match your filter criteria – try adjusting filters
+                </p>
+                <button
+                  onClick={() => setShowNoResultsModal(false)}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Results Section */}
         {hasSearched && (
