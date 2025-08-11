@@ -44,9 +44,9 @@ export default function Footer() {
             <div className='flex flex-col gap-3 md:gap-4'>
               <h4 className='uppercase font-semibold text-sm text-slate-500 tracking-wide'>Resources</h4>
               <div className="flex flex-wrap md:flex-col gap-3 text-sm text-slate-700 items-start">
-                <Link className='text-slate-600 hover:text-purple-600 whitespace-nowrap font-medium transition-colors duration-200' href="/">Safety Database</Link>
-                <Link className='text-slate-600 hover:text-purple-600 whitespace-nowrap font-medium transition-colors duration-200' href="/">Ingredient Checker</Link>
-                <Link className='text-slate-600 hover:text-purple-600 whitespace-nowrap font-medium transition-colors duration-200' href="/">Safety Guidelines</Link>
+                <Link className='text-slate-600 hover:text-purple-600 whitespace-nowrap font-medium transition-colors duration-200' href="https://data.gov.my">Safety Database</Link>
+                <Link className='text-slate-600 hover:text-purple-600 whitespace-nowrap font-medium transition-colors duration-200' href="/ingredient-scanner">Ingredient Checker</Link>
+                <Link className='text-slate-600 hover:text-purple-600 whitespace-nowrap font-medium transition-colors duration-200' href="/safety-guide">Safety Guidelines</Link>
               </div>
             </div>
 
@@ -56,9 +56,9 @@ export default function Footer() {
                 About <span className='inline-flex ml-1 py-1 px-2 bg-slate-100 text-xs rounded-md rotate-1'>FIT5120-TM1</span>
               </h4>
               <div className="flex gap-3 flex-wrap md:flex-col text-sm text-slate-700 items-start">
-                <Link className='pointer-events-none text-slate-400 whitespace-nowrap font-medium' href="/about">Our Mission</Link>
-                <Link className='pointer-events-none text-slate-400 whitespace-nowrap font-medium' href="https://data.gov.my/">Data Sources</Link>
-                <Link className='pointer-events-none text-slate-400 whitespace-nowrap font-medium' href="/about">Team</Link>
+                <Link className='text-slate-600 hover:text-purple-600 whitespace-nowrap font-medium transition-colors duration-200' href="/about">Our Mission</Link>
+                <Link className='text-slate-600 hover:text-purple-600 whitespace-nowrap font-medium transition-colors duration-200' href="https://data.gov.my/">Data Sources</Link>
+                <Link className='text-slate-600 hover:text-purple-600 whitespace-nowrap font-medium transition-colors duration-200' href="/about">Team</Link>
               </div>
             </div>
             

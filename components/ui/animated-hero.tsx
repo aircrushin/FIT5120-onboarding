@@ -22,11 +22,13 @@ function Hero() {
   }, [titleNumber, titles]);
 
   return (
-    <div className="h-full w-full">
-      <div className="container mx-auto h-full">
+    <div className="h-screen w-full">
+      <div className="mx-auto h-full -mt-12 md:-mt-24 lg:-mt-32">
         <div className="flex gap-4 flex-col h-full items-center justify-center">
           <h1 className="text-5xl md:text-7xl max-w-2xl tracking-tighter text-center font-regular">
-            <span className="bg-gradient-to-r from-[#ffa94d] via-[#ffcc9c] to-[#f4a582] bg-clip-text text-transparent">Keep Your Skin</span>
+            <span className="bg-gradient-to-r from-[#ffa94d] via-[#ffcc9c] to-[#f4a582] bg-clip-text text-transparent">
+              Keep Your Skin
+            </span>
             <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-4">
               &nbsp;
               {titles.map((title, index) => (
@@ -54,9 +56,9 @@ function Hero() {
           </h1>
 
           <p className="text-lg md:text-xl leading-relaxed tracking-tight text-gray-700 max-w-2xl text-center mt-2">
-            Helping young adults in Malaysia make informed cosmetic choices
-            and avoid harmful products. Protect your skin, protect your health
-            with our comprehensive product safety database.
+            Helping young adults in Malaysia make informed cosmetic choices and
+            avoid harmful products. Protect your skin, protect your health with
+            our comprehensive product safety database.
           </p>
           <div className="flex items-center justify-center gap-4 mt-4">
             <Link href="/product-search">

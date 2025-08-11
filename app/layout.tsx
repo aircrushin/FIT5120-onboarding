@@ -16,7 +16,7 @@ export const metadata = {
     "Malaysia",
     "health protection",
     "beauty safety",
-  ]
+  ],
 };
 
 export default function RootLayout({

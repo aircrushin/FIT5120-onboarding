@@ -40,7 +40,7 @@ export default function Header() {
               href="/ingredient-scanner" 
               className="text-sm font-medium text-slate-600 hover:text-purple-600 transition-colors"
             >
-              Ingredient Scanner
+              Ingredient Checker
             </Link>
           </nav>
 

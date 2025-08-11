@@ -1,152 +1,179 @@
 # Server Actions Usage Guide
 
-This directory contains Next.js Server Actions for product search functionality.
+This directory contains Next.js Server Actions for product search and discovery.
 
 ## What are Server Actions?
 
-Server Actions are a feature in Next.js that allows you to run server-side code directly from client components without creating API routes. They provide a seamless way to handle form submissions and data mutations.
+Server Actions let you run server-side code directly from client components without creating API routes. They enable type-safe data fetching and mutations with simple function calls.
 
 ## Available Actions
 
-### `searchProductsAction(query: string)`
-Search for products by name, brand, or notification number.
+### searchProductsAction(query: string)
+Search products by name, brand, category, or notification number.
 
-**Usage in components:**
-```tsx
+```ts
 import { searchProductsAction } from '../actions/product-actions';
 
-// In a form submission
-const handleSubmit = async (formData: FormData) => {
-  const query = formData.get('query') as string;
-  const results = await searchProductsAction(query);
-  // Handle results...
-};
-
-// With useActionState hook
-const [state, formAction, isPending] = useActionState(searchFormAction, {
-  results: []
-});
+const results = await searchProductsAction('Vitamin C');
 ```
 
-### `getProductByNotificationAction(notificationNumber: string)`
-Get a specific product by its notification number.
+### getProductByNotificationAction(notificationNumber: string)
+Get a single product by notification number.
 
-### `getAllProductsAction()`
-Retrieve all products with ingredients.
+```ts
+import { getProductByNotificationAction } from '../actions/product-actions';
 
-### `getSimilarApprovedProductsAction(referenceNotifNo: string, limit?: number)`
-Find similar approved products based on category, brand, or other criteria.
+const product = await getProductByNotificationAction('NOT110307162K');
+```
 
-### `getRandomProductsAction(limit?: number)`
-Get random featured products for display.
+### getAllProductsAction()
+Retrieve all products with their ingredients.
 
-## Benefits of Server Actions
+```ts
+import { getAllProductsAction } from '../actions/product-actions';
 
-### ✅ Advantages:
-1. **Type Safety**: Full TypeScript support with shared types
-2. **Direct Integration**: No need for separate API routes
-3. **Automatic Revalidation**: Built-in cache invalidation
-4. **Progressive Enhancement**: Works without JavaScript
-5. **Optimistic Updates**: Easy to implement with React transitions
-6. **Error Handling**: Centralized error handling in actions
+const products = await getAllProductsAction();
+```
 
-### ❌ Considerations:
-1. **Bundle Size**: May increase client bundle if not used properly
-2. **Limited Caching**: Less flexible than REST API caching
-3. **Platform Lock-in**: Specific to Next.js ecosystem
-4. **Debugging**: Harder to test in isolation
+### getSimilarApprovedProductsAction(referenceNotifNo: string, limit?: number)
+Find similar approved products based on the reference product's category.
 
-## Usage Patterns
+```ts
+import { getSimilarApprovedProductsAction } from '../actions/product-actions';
 
-### 1. Form Submissions (Recommended)
-```tsx
-// SearchForm.tsx
-export default function SearchForm() {
-  const [state, formAction, isPending] = useActionState(searchFormAction, {
-    results: []
-  });
+const similar = await getSimilarApprovedProductsAction('NOT110307162K', 6);
+```
 
-  return (
-    <form action={formAction}>
-      <input name="query" type="text" />
-      <button type="submit" disabled={isPending}>
-        {isPending ? 'Searching...' : 'Search'}
-      </button>
-    </form>
-  );
+### getRandomProductsAction(limit?: number)
+Get random products for featured sections.
+
+```ts
+import { getRandomProductsAction } from '../actions/product-actions';
+
+const featured = await getRandomProductsAction(6);
+```
+
+### getFilterOptionsAction()
+Fetch filter option lists for UI controls.
+
+Returns ingredient list, unique categories, and unique brands.
+
+```ts
+import { getFilterOptionsAction } from '../actions/product-actions';
+
+const options = await getFilterOptionsAction();
+// options.ingredients: [{ ing_id, ing_name, ing_risk_type }]
+// options.categories: string[]
+// options.brands: string[]
+```
+
+### getFilteredProductsAction(filters: ProductFilters, searchQuery?: string)
+Search products with filter criteria. If `searchQuery` is omitted/empty, filters alone are applied.
+
+```ts
+import { getFilteredProductsAction } from '../actions/product-actions';
+
+const results = await getFilteredProductsAction({
+  safetyLevels: ['safe', 'risky'],
+  ingredientIds: [101, 202],
+  approvalStatuses: ['A'],
+  categories: ['Face Cream'],
+  brands: ['Brand A', 'Brand B'],
+}, 'retinol');
+```
+
+## Types
+
+```ts
+// Returned by search actions
+export interface ProductSearchResult {
+  prod_notif_no: string;
+  prod_name: string;
+  prod_brand: string;
+  prod_category: string;
+  prod_status_type: 'A' | 'C';
+  prod_status_date: string;
+  holder_name: string;
+  ingredients: Array<{
+    name: string;
+    risk_type: 'L' | 'H' | 'B'; // Low | High | Banned
+    risk_summary: string;
+  }>;
+}
+
+export interface FilterOptions {
+  ingredients: Array<{
+    ing_id: number;
+    ing_name: string;
+    ing_risk_type: 'B' | 'H' | 'L' | 'N';
+  }>;
+  categories: string[];
+  brands: string[];
+}
+
+// Input to getFilteredProductsAction
+export interface ProductFilters {
+  // Safety Level:
+  // - 'safe': Approved products without banned/high-risk ingredients
+  // - 'risky': Approved products with any banned/high-risk ingredients
+  // - 'unsafe': Cancelled products
+  safetyLevels: ('safe' | 'unsafe' | 'risky')[];
+
+  // Ingredient selection by IDs (matches ANY of the selected ingredient IDs)
+  ingredientIds: number[];
+
+  // Approval status ('A' | 'C')
+  approvalStatuses: ('A' | 'C')[];
+
+  // Category and brand filters (match ANY selected within each group)
+  categories: string[];
+  brands: string[];
 }
 ```
 
-### 2. Direct Function Calls (Current Implementation)
-```tsx
-// ProductSearchPage.tsx
-import { searchProductsAction } from '../actions/product-actions';
+## Filter Semantics
 
-const handleSearch = () => {
-  startTransition(async () => {
-    try {
-      const results = await searchProductsAction(query);
-      setResults(results);
-    } catch (error) {
-      setError('Search failed');
-    }
-  });
-};
-```
+- Group-level logic: products must satisfy ALL selected groups that are non-empty (AND across groups: Safety AND Approval AND Ingredients AND Categories AND Brands).
+- Within a group:
+  - approvalStatuses: IN semantics; selecting both 'A' and 'C' is equivalent to no approval filter.
+  - categories: IN semantics across selected categories.
+  - brands: IN semantics across selected brands.
+  - ingredientIds: matches products that contain ANY of the selected ingredients.
+  - safetyLevels:
+    - 'unsafe': `prod_status_type === 'C'`
+    - 'risky': approved ('A') and has any ingredient with risk_type 'B' or 'H'
+    - 'safe': approved ('A') and has no ingredients with risk_type 'B' or 'H'
 
-### 3. With React Transitions
+## Usage Patterns
+
+### Direct calls with React transitions
 ```tsx
 const [isPending, startTransition] = useTransition();
 
-const handleAction = () => {
+function applyFilters(filters: ProductFilters, searchQuery: string) {
   startTransition(async () => {
-    await searchProductsAction(query);
+    const results = await getFilteredProductsAction(filters, searchQuery);
+    setResults(results);
   });
-};
+}
+```
+
+### Debounced search with filters
+```tsx
+useEffect(() => {
+  const id = setTimeout(() => {
+    getFilteredProductsAction(activeFilters, searchQuery).then(setResults);
+  }, 300);
+  return () => clearTimeout(id);
+}, [activeFilters, searchQuery]);
 ```
 
 ## Error Handling
 
-All actions include proper error handling:
-- Input validation
-- Database error handling
-- User-friendly error messages
-- Fallback to safe defaults
+All actions perform safe querying and will throw on fatal errors. Catch errors in client code and present user-friendly messages.
 
-## Migration from Traditional API
+## Notes
 
-### Before (API Route):
-```tsx
-// pages/api/search.ts
-export default function handler(req, res) {
-  // API logic
-}
-
-// In component
-const response = await fetch('/api/search?q=' + query);
-const data = await response.json();
-```
-
-### After (Server Action):
-```tsx
-// app/actions/product-actions.ts
-export async function searchProductsAction(query: string) {
-  // Same logic as API route
-}
-
-// In component
-const results = await searchProductsAction(query);
-```
-
-## Best Practices
-
-1. **Use with Forms**: Server Actions work best with form submissions
-2. **Handle Loading States**: Use `useTransition` or `useActionState`
-3. **Error Boundaries**: Implement proper error handling
-4. **Input Validation**: Always validate inputs in actions
-5. **Type Safety**: Use TypeScript interfaces for return types
-6. **Progressive Enhancement**: Ensure forms work without JavaScript
-
-## Example Component
-
-See `app/components/search-form.tsx` for a complete example of using Server Actions with forms and proper loading/error states. 
+- Actions are implemented with Drizzle ORM and typed Postgres schema.
+- Ingredient risk types: 'B' (Banned), 'H' (High), 'L' (Low), 'N' (Normal/None).
+- When there are no filters and no query, `getFilteredProductsAction` returns an empty list (call `searchProductsAction` or provide a filter to get results). 

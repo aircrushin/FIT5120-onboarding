@@ -746,7 +746,7 @@ export default function ProductSearchPage() {
                 {/* Placeholder Text */}
                 <div className="mt-3 flex flex-wrap gap-2 justify-center">
                   {[
-                    "Try: Vitamin C",
+                    "Vitamin C",
                     "NOT110307162K",
                     "Face cream",
                   ].map((suggestion, index) => (
