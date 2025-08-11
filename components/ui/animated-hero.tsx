@@ -22,8 +22,8 @@ function Hero() {
   }, [titleNumber, titles]);
 
   return (
-    <div className="h-screen w-full">
-      <div className="mx-auto h-full -mt-12 md:-mt-24 lg:-mt-32">
+    <div className="h-full w-full">
+      <div className="mx-auto h-full -mt-16 md:-mt-32">
         <div className="flex gap-4 flex-col h-full items-center justify-center">
           <h1 className="text-5xl md:text-7xl max-w-2xl tracking-tighter text-center font-regular">
             <span className="bg-gradient-to-r from-[#ffa94d] via-[#ffcc9c] to-[#f4a582] bg-clip-text text-transparent">
