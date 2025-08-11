@@ -23,13 +23,13 @@ function Hero() {
 
   return (
     <div className="h-full w-full">
-      <div className="mx-auto h-full -mt-16 md:-mt-32">
+      <div className="mx-auto h-full -mt-16">
         <div className="flex gap-4 flex-col h-full items-center justify-center">
           <h1 className="text-5xl md:text-7xl max-w-2xl tracking-tighter text-center font-regular">
             <span className="bg-gradient-to-r from-[#ffa94d] via-[#ffcc9c] to-[#f4a582] bg-clip-text text-transparent">
               Keep Your Skin
             </span>
-            <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-4">
+            <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4">
               &nbsp;
               {titles.map((title, index) => (
                 <motion.span
