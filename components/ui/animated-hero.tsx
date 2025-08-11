@@ -28,7 +28,7 @@ function Hero() {
           <span className="bg-gradient-to-r from-[#ffa94d] via-[#ffcc9c] to-[#f4a582] bg-clip-text text-transparent">
             Keep Your Skin
           </span>
-          <span className="relative flex w-full justify-center overflow-hidden text-center pb-3 md:pb-4 md:pt-4">
+          <span className="relative flex w-full justify-center overflow-hidden text-center pb-3 md:pb-4">
             &nbsp;
             {titles.map((title, index) => (
               <motion.span
