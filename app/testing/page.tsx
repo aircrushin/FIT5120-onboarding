@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from "react"
+import { insertIngredientsFromCSV, insertHoldersFromCSV, insertProductsFromCSV, insertProdIngredientsFromCSV } from "db/queries/insert";
+import { clearTables } from "db/queries/delete";
 
 export default function TestingPage() {
   const [test, setTest] = useState("");
@@ -60,6 +62,7 @@ export default function TestingPage() {
           {result}
         </p>
       )}
+      <button onClick={() => insertProdIngredientsFromCSV()}>test insert</button>
     </div>
   )
 }
