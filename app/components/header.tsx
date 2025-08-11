@@ -37,10 +37,10 @@ export default function Header() {
               Safety Guide
             </Link>
             <Link 
-              href="/about" 
+              href="/ingredient-scanner" 
               className="text-sm font-medium text-slate-600 hover:text-purple-600 transition-colors"
             >
-              About
+              Ingredient Scanner
             </Link>
           </nav>
 

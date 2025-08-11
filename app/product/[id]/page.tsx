@@ -3,6 +3,8 @@ import { getProductByNotificationNumber, getSimilarApprovedProducts } from '../.
 import Link from 'next/link'
 import { ProductCard } from '../../components/ProductCard'
 import { notFound } from 'next/navigation'
+import { Tabs } from '../../../components/ui/tabs'
+import { IngredientsDisplay } from '../../components/ingredients-display'
 
 interface ProductDetailPageProps {
   params: { id: string }
@@ -481,63 +483,64 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             </div>
           </div>
 
-          {/* Ingredients Analysis */}
+          {/* Product Details Tabs */}
           <div className="p-6 border-t">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Ingredients Analysis</h2>
-              <div className="text-sm text-gray-500">
-                {product.ingredients.length} ingredient{product.ingredients.length !== 1 ? 's' : ''} analyzed
-              </div>
-            </div>
-            
-            {/* Risk Summary Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
-              <div className="text-center">
-                <div className="text-lg font-bold text-green-600">
-                  {product.ingredients.filter(ing => ing.risk_type === 'L').length}
-                </div>
-                <div className="text-xs text-gray-600">Low Risk</div>
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-orange-600">
-                  {product.ingredients.filter(ing => ing.risk_type === 'H').length}
-                </div>
-                <div className="text-xs text-gray-600">High Risk</div>
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-red-600">
-                  {product.ingredients.filter(ing => ing.risk_type === 'B').length}
-                </div>
-                <div className="text-xs text-gray-600">Banned</div>
-              </div>
-            </div>
-            
-            {/* Detailed Ingredients List */}
-            <div className="space-y-3">
-              {product.ingredients
-                .sort((a, b) => {
-                  // Sort by risk level: Banned first, then High Risk, then Low Risk
-                  const riskOrder = { 'B': 0, 'H': 1, 'L': 2 };
-                  return riskOrder[a.risk_type] - riskOrder[b.risk_type];
-                })
-                .map((ingredient, index) => (
-                <div key={index} className={`p-3 rounded-lg border-l-4 ${
-                  ingredient.risk_type === 'B' ? 'bg-red-50 border-l-red-400' :
-                  ingredient.risk_type === 'H' ? 'bg-orange-50 border-l-orange-400' :
-                  'bg-green-50 border-l-green-400'
-                }`}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-medium text-gray-900">{ingredient.name}</span>
-                        {getRiskBadge(ingredient.risk_type)}
+            <Tabs
+              defaultTab="overview"
+              tabs={[
+                {
+                  id: 'overview',
+                  label: 'Overview',
+                  content: (
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                          Product Summary
+                        </h3>
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Product Name:</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{product.prod_name}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Brand:</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{product.prod_brand}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Category:</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{product.prod_category}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Notification Number:</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{product.prod_notif_no}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Holder:</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{product.holder_name}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Status Date:</span>
+                            <span className="font-medium text-gray-900 dark:text-white">
+                              {new Date(product.prod_status_date).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-700">{ingredient.risk_summary}</p>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  )
+                },
+                {
+                  id: 'ingredients',
+                  label: 'Ingredients',
+                  content: (
+                    <IngredientsDisplay 
+                      ingredients={product.ingredients} 
+                      productName={product.prod_name}
+                    />
+                  )
+                }
+              ]}
+            />
           </div>
         </div>
 
