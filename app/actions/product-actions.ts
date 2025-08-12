@@ -91,53 +91,74 @@ export async function searchProductsAction(query: string): Promise<ProductSearch
       new Map(products.map(p => [p.prod_notif_no, p])).values()
     );
 
-    // For each product, get its ingredients and calculate relevance score
-    const productsWithIngredients: ProductSearchResult[] = await Promise.all(
-      uniqueProducts.map(async (product) => {
-        const ingredients = await db
-          .select({
-            name: ingredientTable.ing_name,
-            risk_type: ingredientTable.ing_risk_type,
-            risk_summary: ingredientTable.ing_risk_summary,
-          })
-          .from(prodIngredientTable)
-          .leftJoin(ingredientTable, eq(prodIngredientTable.ing_id, ingredientTable.ing_id))
-          .where(eq(prodIngredientTable.prod_notif_no, product.prod_notif_no));
+    // Batch fetch all ingredients for all products to reduce database queries
+    const allProductNotifNos = uniqueProducts.map(p => p.prod_notif_no);
+    
+    let allIngredients: { [key: string]: Array<{ name: string; risk_type: 'L' | 'H' | 'B'; risk_summary: string; }> } = {};
+    
+    try {
+      // Fetch all ingredients in a single query
+      const ingredientsData = await db
+        .select({
+          prod_notif_no: prodIngredientTable.prod_notif_no,
+          name: ingredientTable.ing_name,
+          risk_type: ingredientTable.ing_risk_type,
+          risk_summary: ingredientTable.ing_risk_summary,
+        })
+        .from(prodIngredientTable)
+        .leftJoin(ingredientTable, eq(prodIngredientTable.ing_id, ingredientTable.ing_id))
+        .where(sql`${prodIngredientTable.prod_notif_no} IN (${sql.join(allProductNotifNos.map(notif => sql`${notif}`), sql`, `)})`);
 
-        // Calculate relevance score for better sorting
-        let relevanceScore = 0;
-        const productText = `${product.prod_name} ${product.prod_brand} ${product.prod_category}`.toLowerCase();
-        
-        // Exact phrase match gets highest score
-        if (productText.includes(searchQuery.toLowerCase())) {
-          relevanceScore += 100;
+      // Group ingredients by product notification number
+      ingredientsData.forEach(item => {
+        if (!allIngredients[item.prod_notif_no]) {
+          allIngredients[item.prod_notif_no] = [];
         }
-        
-        // Count how many search terms match
-        searchTerms.forEach(term => {
-          if (productText.includes(term)) {
-            relevanceScore += 10;
-          }
+        allIngredients[item.prod_notif_no].push({
+          name: item.name || '',
+          risk_type: (item.risk_type as 'L' | 'H' | 'B') || 'L',
+          risk_summary: item.risk_summary || '',
         });
-        
-        // Notification number exact match gets high score
-        if (product.prod_notif_no.toLowerCase().includes(searchQuery.toLowerCase())) {
-          relevanceScore += 50;
-        }
+      });
+    } catch (ingredientError) {
+      console.error('Error fetching ingredients:', ingredientError);
+      // Initialize empty ingredients for all products if query fails
+      allProductNotifNos.forEach(notif => {
+        allIngredients[notif] = [];
+      });
+    }
 
-        return {
-          ...product,
-          prod_status_type: product.prod_status_type as 'A' | 'C',
-          holder_name: product.holder_name || 'Unknown Holder',
-          ingredients: ingredients.map(ing => ({
-            name: ing.name || '',
-            risk_type: (ing.risk_type as 'L' | 'H' | 'B') || 'L',
-            risk_summary: ing.risk_summary || '',
-          })),
-          relevanceScore,
-        };
-      })
-    );
+    // Process products with their ingredients and calculate relevance scores
+    const productsWithIngredients: ProductSearchResult[] = uniqueProducts.map((product) => {
+      // Calculate relevance score for better sorting
+      let relevanceScore = 0;
+      const productText = `${product.prod_name} ${product.prod_brand} ${product.prod_category}`.toLowerCase();
+      
+      // Exact phrase match gets highest score
+      if (productText.includes(searchQuery.toLowerCase())) {
+        relevanceScore += 100;
+      }
+      
+      // Count how many search terms match
+      searchTerms.forEach(term => {
+        if (productText.includes(term)) {
+          relevanceScore += 10;
+        }
+      });
+      
+      // Notification number exact match gets high score
+      if (product.prod_notif_no.toLowerCase().includes(searchQuery.toLowerCase())) {
+        relevanceScore += 50;
+      }
+
+      return {
+        ...product,
+        prod_status_type: product.prod_status_type as 'A' | 'C',
+        holder_name: product.holder_name || 'Unknown Holder',
+        ingredients: allIngredients[product.prod_notif_no] || [],
+        relevanceScore,
+      };
+    });
 
     // Sort by relevance score then by status date
     return productsWithIngredients.sort((a, b) => {
@@ -150,7 +171,8 @@ export async function searchProductsAction(query: string): Promise<ProductSearch
     });
   } catch (error) {
     console.error('Error searching products:', error);
-    throw new Error('Failed to search products');
+    // Return empty array instead of throwing to prevent crashes
+    return [];
   }
 }
 
@@ -224,35 +246,58 @@ export async function getAllProductsAction(): Promise<ProductSearchResult[]> {
       .leftJoin(holderTable, eq(productTable.holder_id, holderTable.holder_id))
       .orderBy(desc(productTable.prod_status_date));
 
-    const productsWithIngredients: ProductSearchResult[] = await Promise.all(
-      products.map(async (product) => {
-        const ingredients = await db
+    // Batch fetch all ingredients for all products
+    const allProductNotifNos = products.map(p => p.prod_notif_no);
+    
+    let allIngredients: { [key: string]: Array<{ name: string; risk_type: 'L' | 'H' | 'B'; risk_summary: string; }> } = {};
+    
+    try {
+      if (allProductNotifNos.length > 0) {
+        const ingredientsData = await db
           .select({
+            prod_notif_no: prodIngredientTable.prod_notif_no,
             name: ingredientTable.ing_name,
             risk_type: ingredientTable.ing_risk_type,
             risk_summary: ingredientTable.ing_risk_summary,
           })
           .from(prodIngredientTable)
           .leftJoin(ingredientTable, eq(prodIngredientTable.ing_id, ingredientTable.ing_id))
-          .where(eq(prodIngredientTable.prod_notif_no, product.prod_notif_no));
+          .where(sql`${prodIngredientTable.prod_notif_no} IN (${sql.join(allProductNotifNos.map(notif => sql`${notif}`), sql`, `)})`);
 
-        return {
-          ...product,
-          prod_status_type: product.prod_status_type as 'A' | 'C',
-          holder_name: product.holder_name || 'Unknown Holder',
-          ingredients: ingredients.map(ing => ({
-            name: ing.name || '',
-            risk_type: (ing.risk_type as 'L' | 'H' | 'B') || 'L',
-            risk_summary: ing.risk_summary || '',
-          })),
-        };
-      })
-    );
+        // Group ingredients by product notification number
+        ingredientsData.forEach(item => {
+          if (!allIngredients[item.prod_notif_no]) {
+            allIngredients[item.prod_notif_no] = [];
+          }
+          allIngredients[item.prod_notif_no].push({
+            name: item.name || '',
+            risk_type: (item.risk_type as 'L' | 'H' | 'B') || 'L',
+            risk_summary: item.risk_summary || '',
+          });
+        });
+      }
+    } catch (ingredientError) {
+      console.error('Error fetching ingredients in getAllProducts:', ingredientError);
+      // Initialize empty ingredients for all products if query fails
+      allProductNotifNos.forEach(notif => {
+        allIngredients[notif] = [];
+      });
+    }
+
+    const productsWithIngredients: ProductSearchResult[] = products.map((product) => {
+      return {
+        ...product,
+        prod_status_type: product.prod_status_type as 'A' | 'C',
+        holder_name: product.holder_name || 'Unknown Holder',
+        ingredients: allIngredients[product.prod_notif_no] || [],
+      };
+    });
 
     return productsWithIngredients;
   } catch (error) {
     console.error('Error getting all products:', error);
-    throw new Error('Failed to get products');
+    // Return empty array instead of throwing to prevent crashes
+    return [];
   }
 }
 
@@ -441,31 +486,53 @@ export async function getFilteredProductsAction(filters: ProductFilters, searchQ
       ? await baseQuery.where(and(...whereConditions)).orderBy(desc(productTable.prod_status_date))
       : await baseQuery.orderBy(desc(productTable.prod_status_date));
 
-    // Get products with their ingredients
-    const productsWithIngredients: ProductSearchResult[] = await Promise.all(
-      products.map(async (product) => {
-        const ingredients = await db
+    // Batch fetch all ingredients for all products to reduce database queries
+    const allProductNotifNos = products.map(p => p.prod_notif_no);
+    
+    let allIngredients: { [key: string]: Array<{ name: string; risk_type: 'L' | 'H' | 'B'; risk_summary: string; }> } = {};
+    
+    try {
+      if (allProductNotifNos.length > 0) {
+        const ingredientsData = await db
           .select({
+            prod_notif_no: prodIngredientTable.prod_notif_no,
             name: ingredientTable.ing_name,
             risk_type: ingredientTable.ing_risk_type,
             risk_summary: ingredientTable.ing_risk_summary,
           })
           .from(prodIngredientTable)
           .leftJoin(ingredientTable, eq(prodIngredientTable.ing_id, ingredientTable.ing_id))
-          .where(eq(prodIngredientTable.prod_notif_no, product.prod_notif_no));
+          .where(sql`${prodIngredientTable.prod_notif_no} IN (${sql.join(allProductNotifNos.map(notif => sql`${notif}`), sql`, `)})`);
 
-        return {
-          ...product,
-          prod_status_type: product.prod_status_type as 'A' | 'C',
-          holder_name: product.holder_name || 'Unknown Holder',
-          ingredients: ingredients.map(ing => ({
-            name: ing.name || '',
-            risk_type: (ing.risk_type as 'L' | 'H' | 'B') || 'L',
-            risk_summary: ing.risk_summary || '',
-          })),
-        };
-      })
-    );
+        // Group ingredients by product notification number
+        ingredientsData.forEach(item => {
+          if (!allIngredients[item.prod_notif_no]) {
+            allIngredients[item.prod_notif_no] = [];
+          }
+          allIngredients[item.prod_notif_no].push({
+            name: item.name || '',
+            risk_type: (item.risk_type as 'L' | 'H' | 'B') || 'L',
+            risk_summary: item.risk_summary || '',
+          });
+        });
+      }
+    } catch (ingredientError) {
+      console.error('Error fetching ingredients in getFilteredProducts:', ingredientError);
+      // Initialize empty ingredients for all products if query fails
+      allProductNotifNos.forEach(notif => {
+        allIngredients[notif] = [];
+      });
+    }
+
+    // Get products with their ingredients
+    const productsWithIngredients: ProductSearchResult[] = products.map((product) => {
+      return {
+        ...product,
+        prod_status_type: product.prod_status_type as 'A' | 'C',
+        holder_name: product.holder_name || 'Unknown Holder',
+        ingredients: allIngredients[product.prod_notif_no] || [],
+      };
+    });
 
     // Apply additional filters that require ingredient data
     let filteredProducts = productsWithIngredients;
@@ -519,7 +586,8 @@ export async function getFilteredProductsAction(filters: ProductFilters, searchQ
     return filteredProducts;
   } catch (error) {
     console.error('Error getting filtered products:', error);
-    throw new Error('Failed to get filtered products');
+    // Return empty array instead of throwing to prevent crashes
+    return [];
   }
 }
 
@@ -543,6 +611,7 @@ export async function getRandomProductsAction(limit: number = 6): Promise<Featur
     }));
   } catch (error) {
     console.error('Error getting random products:', error);
-    throw new Error('Failed to get featured products');
+    // Return empty array instead of throwing to prevent crashes
+    return [];
   }
 } 

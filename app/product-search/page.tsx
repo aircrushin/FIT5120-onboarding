@@ -716,7 +716,7 @@ export default function ProductSearchPage() {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       handleSearch(searchQuery);
-    }, 300);
+    }, 500);
 
     return () => clearTimeout(timeoutId);
   }, [searchQuery, activeFilters, handleSearch]);
@@ -874,6 +874,8 @@ export default function ProductSearchPage() {
                           setCurrentPage(1);
                         }}
                         className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-200"
+                        title="Clear search"
+                        aria-label="Clear search input"
                       >
                         <svg
                           className="w-4 h-4"
