@@ -32,7 +32,7 @@ export async function searchIngredientAction(ingredientName: string): Promise<In
         ing_risk_type: ingredientTable.ing_risk_type
       })
       .from(ingredientTable)
-      .where(like(sql`lower(${ingredientTable.ing_name})`, `%${ingredientName}%`))
+      .where(like(sql`lower(${ingredientTable.ing_name})`, `%${ingredientName.toLowerCase()}%`))
       .limit(1);
 
     if (results.length === 0) {
