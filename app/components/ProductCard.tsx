@@ -32,7 +32,9 @@ export function ProductCard({ product, href, isReference = false, onSearchClick 
             <div className={`font-bold text-neutral-800 dark:text-white line-clamp-2 ${isReference ? 'text-lg' : 'text-base'}`}>
               {product.prod_name}
             </div>
-            <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">{product.prod_notif_no}</div>
+            <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 font-mono">
+              {product.prod_notif_no.replace(/(.{4})/g, '$1 ').trim()}
+            </div>
           </div>
           {product.prod_status_type ? (
             <div className="flex items-center gap-2">

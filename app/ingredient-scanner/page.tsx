@@ -248,13 +248,13 @@ export default function IngredientScannerPage() {
                 <div className="flex items-center gap-2 mb-6">
                   <TrendingUp className="w-6 h-6 text-blue-600" />
                   <h3 className="text-xl font-bold text-gray-900">
-                    Banned Substance Trends
+                    Banned Ingredient Trends
                   </h3>
                 </div>
                 
                 <div className="mb-6">
                   <p className="text-gray-700">
-                    Total number of times <span className="font-semibold">{trends.ingredient_name}</span> has been banned: 
+                    Total number of products <span className="font-semibold">{trends.ingredient_name}</span> has been banned: 
                     <span className="ml-2 text-2xl font-bold text-red-600">{trends.total_banned_count}</span>
                   </p>
                 </div>

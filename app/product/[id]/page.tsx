@@ -1,4 +1,4 @@
-import { CheckCircle, AlertTriangle, Building2, Calendar, Package, Shield, ShieldAlert, ShieldCheck, ShieldX, Info, Lightbulb, ArrowLeft } from 'lucide-react'
+import { CheckCircle, AlertTriangle, Building2, Calendar, Package, Shield, ShieldAlert, ShieldCheck, ShieldX, Info, Lightbulb, ArrowLeft, HelpCircle, Star, ExternalLink } from 'lucide-react'
 import { getProductByNotificationNumber, getSimilarApprovedProducts } from '../../../db/queries/search'
 import Link from 'next/link'
 import { ProductCard } from '../../components/ProductCard'
@@ -127,14 +127,60 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     };
 
     return (
-      <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border ${getScoreBg()}`}>
-        {getScoreIcon()}
-        <div className="text-sm">
-          <div className={`font-bold ${getScoreColor()}`}>
-            Trust Score: {trustScore}/100
+      <div className="relative group">
+        <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border ${getScoreBg()}`}>
+          {getScoreIcon()}
+          <div className="text-sm">
+            <div className={`font-bold ${getScoreColor()}`}>
+              Trust Score: {trustScore}/100
+            </div>
+            <div className="text-xs text-gray-600 capitalize">
+              {trustLevel} Safety
+            </div>
           </div>
-          <div className="text-xs text-gray-600 capitalize">
-            {trustLevel} Safety
+          <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help ml-1" />
+        </div>
+        
+        {/* Tooltip */}
+        <div className="absolute right-0 top-full mt-2 w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+          <div className="text-sm">
+            <h4 className="font-semibold text-gray-900 mb-2">How Trust Score is Calculated</h4>
+            <div className="space-y-2 text-gray-700">
+              <p><strong>Starting Score:</strong> 100 points</p>
+              <p><strong>Penalties:</strong></p>
+              <ul className="list-disc list-inside ml-2 space-y-1">
+                <li>Cancelled products: Score becomes 0</li>
+                <li>Banned ingredients: -50 points each</li>
+                <li>High-risk ingredients: -25 points each</li>
+              </ul>
+              <p><strong>Bonus:</strong> +2 points per low-risk ingredient (max +10)</p>
+              
+              <div className="mt-3 pt-2 border-t border-gray-200">
+                <p className="font-medium mb-1">Score Ranges:</p>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span>85-100:</span>
+                    <span className="text-green-600 font-medium">Excellent Safety</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>70-84:</span>
+                    <span className="text-blue-600 font-medium">Good Safety</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>50-69:</span>
+                    <span className="text-yellow-600 font-medium">Fair Safety</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>1-49:</span>
+                    <span className="text-orange-600 font-medium">Poor Safety</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>0:</span>
+                    <span className="text-red-600 font-medium">Dangerous</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -338,9 +384,12 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                   {getStatusBadge(product.prod_status_type)}
                 </div>
                 
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {product.prod_notif_no}
-                </span>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  <div className="text-xs text-gray-400 uppercase tracking-wide">Product ID</div>
+                  <div className="font-mono text-xs">
+                    {product.prod_notif_no.replace(/(.{4})/g, '$1 ').trim()}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -483,6 +532,93 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             </div>
           </div>
 
+          {/* Recommended Alternatives Section */}
+          {similarProducts.length > 0 && (
+            <div className="relative overflow-hidden">
+              {/* Gradient Background */}
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-50 via-blue-50 to-green-50"></div>
+              <div className="absolute inset-0 bg-white/80"></div>
+              
+              <div className="relative p-6 border-t border-purple-100">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full">
+                    <Star className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                      Recommended Safe Alternatives
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {safetyStatus.status === 'unsafe' || safetyStatus.status === 'caution' 
+                        ? 'Consider these safer approved alternatives instead'
+                        : 'Other trusted products you might also like'
+                      }
+                    </p>
+                  </div>
+                  <Link
+                    href={`/alternatives/${encodeURIComponent(product.prod_notif_no)}`}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                  >
+                    View All
+                    <ExternalLink className="w-4 h-4" />
+                  </Link>
+                </div>
+
+                {/* Alert for unsafe products */}
+                {(safetyStatus.status === 'unsafe' || safetyStatus.status === 'caution') && (
+                  <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <div className="text-sm">
+                        <p className="text-amber-800 font-medium">
+                          {safetyStatus.status === 'unsafe' 
+                            ? '⚠️ This product has safety concerns. We strongly recommend choosing from the alternatives below.'
+                            : '⚠️ This product requires caution. Consider these safer alternatives if you have sensitive skin.'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {similarProducts.slice(0, 4).map((p) => (
+                    <div key={p.prod_notif_no} className="relative">
+                      <ProductCard
+                        product={{
+                          prod_notif_no: p.prod_notif_no,
+                          prod_name: p.prod_name,
+                          prod_brand: p.prod_brand,
+                          prod_category: p.prod_category,
+                          holder_name: p.holder_name,
+                          holderApprovedCount: p.holderApprovedCount,
+                          prod_status_type: 'A'
+                        }}
+                        href={`/product/${encodeURIComponent(p.prod_notif_no)}`}
+                      />
+                      {/* Approved Badge Overlay */}
+                      <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                        ✓ SAFE
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {similarProducts.length > 4 && (
+                  <div className="mt-4 text-center">
+                    <Link
+                      href={`/alternatives/${encodeURIComponent(product.prod_notif_no)}`}
+                      className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-medium"
+                    >
+                      View {similarProducts.length - 4} more alternatives
+                      <ExternalLink className="w-4 h-4" />
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Product Details Tabs */}
           <div className="p-6 border-t">
             <Tabs
@@ -511,8 +647,10 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                             <span className="font-medium text-gray-900 dark:text-white">{product.prod_category}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600 dark:text-gray-400">Notification Number:</span>
-                            <span className="font-medium text-gray-900 dark:text-white">{product.prod_notif_no}</span>
+                            <span className="text-gray-600 dark:text-gray-400">Product ID:</span>
+                            <span className="font-mono text-sm text-gray-900 dark:text-white">
+                              {product.prod_notif_no.replace(/(.{4})/g, '$1 ').trim()}
+                            </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600 dark:text-gray-400">Holder:</span>
@@ -543,38 +681,6 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             />
           </div>
         </div>
-
-        {/* Similar Products Section */}
-        {similarProducts.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Similar Approved Alternatives</h2>
-              <Link
-                href={`/alternatives/${encodeURIComponent(product.prod_notif_no)}`}
-                className="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400"
-              >
-                View all alternatives
-              </Link>
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Similar products from trusted brands with approved status.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {similarProducts.map((p) => (
-                <ProductCard
-                  key={p.prod_notif_no}
-                  product={{
-                    prod_notif_no: p.prod_notif_no,
-                    prod_name: p.prod_name,
-                    prod_brand: p.prod_brand,
-                    prod_category: p.prod_category,
-                    holder_name: p.holder_name,
-                    holderApprovedCount: p.holderApprovedCount
-                  }}
-                  href={`/product/${encodeURIComponent(p.prod_notif_no)}`}
-                />
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )
