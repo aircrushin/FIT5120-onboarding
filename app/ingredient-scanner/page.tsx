@@ -149,7 +149,7 @@ export default function IngredientScannerPage() {
             <button
               type="submit"
               disabled={isSearching || !searchQuery.trim()}
-              className="mt-4 w-full rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white py-3.5 px-6 font-semibold shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:brightness-110 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-4 w-full rounded-xl bg-gradient-to-r from-rose-400 to-purple-600 text-white py-3.5 px-6 font-semibold shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:brightness-110 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSearching ? "Searching..." : "Scan Ingredient"}
             </button>
