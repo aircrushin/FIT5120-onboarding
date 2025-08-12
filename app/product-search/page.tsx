@@ -218,20 +218,6 @@ const FilterPanel = ({ filterOptions, activeFilters, onFiltersChange, isLoading 
     );
   };
 
-  const filterCategories = () => {
-    if (!searchTerms.categories.trim()) return filterOptions.categories;
-    return filterOptions.categories.filter(category =>
-      category.toLowerCase().includes(searchTerms.categories.toLowerCase())
-    );
-  };
-
-  const filterBrands = () => {
-    if (!searchTerms.brands.trim()) return filterOptions.brands;
-    return filterOptions.brands.filter(brand =>
-      brand.toLowerCase().includes(searchTerms.brands.toLowerCase())
-    );
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
