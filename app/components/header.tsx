@@ -31,16 +31,22 @@ export default function Header() {
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link 
-              href="/safety-guide" 
+              href="/about" 
               className="text-sm font-medium text-slate-600 hover:text-purple-600 transition-colors"
             >
-              Safety Guide
+              Our Mission
             </Link>
             <Link 
               href="/ingredient-scanner" 
               className="text-sm font-medium text-slate-600 hover:text-purple-600 transition-colors"
             >
               Ingredient Checker
+            </Link>
+            <Link 
+              href="/safety-guide" 
+              className="text-sm font-medium text-slate-600 hover:text-purple-600 transition-colors"
+            >
+              Safety Guide
             </Link>
           </nav>
 
