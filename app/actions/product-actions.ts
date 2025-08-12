@@ -450,7 +450,7 @@ export async function getFilteredProductsAction(filters: ProductFilters, searchQ
                   SELECT DISTINCT pi.prod_notif_no 
                   FROM ${prodIngredientTable} pi
                   JOIN ${ingredientTable} i ON pi.ing_id = i.ing_id
-                  WHERE i.ing_risk_type IN ('L', 'H', 'B')
+                  WHERE i.ing_risk_type IN ('H', 'B')
                 )
               )`
             );
@@ -465,7 +465,7 @@ export async function getFilteredProductsAction(filters: ProductFilters, searchQ
                   SELECT DISTINCT pi.prod_notif_no 
                   FROM ${prodIngredientTable} pi
                   JOIN ${ingredientTable} i ON pi.ing_id = i.ing_id
-                  WHERE i.ing_risk_type IN ('L', 'H', 'B')
+                  WHERE i.ing_risk_type IN ('H', 'B')
                 )
               )`
             );
