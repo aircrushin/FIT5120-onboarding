@@ -391,7 +391,7 @@ export async function getFilterOptionsAction(): Promise<FilterOptions> {
 
 export async function getFilteredProductsAction(filters: ProductFilters, searchQuery?: string): Promise<ProductSearchResult[]> {
   try {
-    // Build where conditions
+    // Build where conditions for the main product query
     const whereConditions = [];
 
     // Apply search query if provided
@@ -403,8 +403,6 @@ export async function getFilteredProductsAction(filters: ProductFilters, searchQ
       searchConditions.push(
         like(sql`lower(${productTable.prod_name})`, `%${query}%`),
         like(sql`lower(${productTable.prod_notif_no})`, `%${query}%`),
-        like(sql`lower(${productTable.prod_brand})`, `%${query}%`),
-        like(sql`lower(${productTable.prod_category})`, `%${query}%`),
       );
       
       searchTerms.forEach(term => {
@@ -412,8 +410,6 @@ export async function getFilteredProductsAction(filters: ProductFilters, searchQ
           searchConditions.push(
             like(sql`lower(${productTable.prod_name})`, `%${term}%`),
             like(sql`lower(${productTable.prod_notif_no})`, `%${term}%`),
-            like(sql`lower(${productTable.prod_brand})`, `%${term}%`),
-            like(sql`lower(${productTable.prod_category})`, `%${term}%`),
           );
         }
       });
@@ -428,8 +424,69 @@ export async function getFilteredProductsAction(filters: ProductFilters, searchQ
       );
     }
 
-    // Get products with base filters
-    const baseQuery = db
+    // Apply ingredient filter using subquery
+    if (filters.ingredientIds.length > 0) {
+      whereConditions.push(
+        sql`${productTable.prod_notif_no} IN (
+          SELECT DISTINCT ${prodIngredientTable.prod_notif_no} 
+          FROM ${prodIngredientTable} 
+          WHERE ${prodIngredientTable.ing_id} IN (${sql.join(filters.ingredientIds.map(id => sql`${id}`), sql`, `)})
+        )`
+      );
+    }
+
+    // Apply safety level filter using subqueries
+    if (filters.safetyLevels.length > 0 && filters.safetyLevels.length < 3) {
+      const safetyConditions: any[] = [];
+      
+      filters.safetyLevels.forEach(level => {
+        switch (level) {
+          case 'safe':
+            // Products that are approved AND don't have banned or high-risk ingredients
+            safetyConditions.push(
+              sql`(
+                ${productTable.prod_status_type} = 'A' 
+                AND ${productTable.prod_notif_no} NOT IN (
+                  SELECT DISTINCT pi.prod_notif_no 
+                  FROM ${prodIngredientTable} pi
+                  JOIN ${ingredientTable} i ON pi.ing_id = i.ing_id
+                  WHERE i.ing_risk_type IN ('L', 'H')
+                )
+              )`
+            );
+            break;
+            
+          case 'risky':
+            // Products that are approved but have banned or high-risk ingredients
+            safetyConditions.push(
+              sql`(
+                ${productTable.prod_status_type} = 'A' 
+                AND ${productTable.prod_notif_no} IN (
+                  SELECT DISTINCT pi.prod_notif_no 
+                  FROM ${prodIngredientTable} pi
+                  JOIN ${ingredientTable} i ON pi.ing_id = i.ing_id
+                  WHERE i.ing_risk_type IN ('B', 'H')
+                )
+              )`
+            );
+            break;
+            
+          case 'unsafe':
+            // Products that are cancelled
+            safetyConditions.push(
+              sql`${productTable.prod_status_type} = 'C'`
+            );
+            break;
+        }
+      });
+      
+      if (safetyConditions.length > 0) {
+        whereConditions.push(or(...safetyConditions));
+      }
+    }
+
+    // Single optimized query with JOINs to get products with aggregated ingredients
+    const productsWithIngredients = await db
       .select({
         prod_notif_no: productTable.prod_notif_no,
         prod_name: productTable.prod_name,
@@ -438,116 +495,111 @@ export async function getFilteredProductsAction(filters: ProductFilters, searchQ
         prod_status_type: productTable.prod_status_type,
         prod_status_date: productTable.prod_status_date,
         holder_name: holderTable.holder_name,
+        // Aggregate ingredients as JSON
+        ingredients: sql<string>`COALESCE(
+          JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'name', ${ingredientTable.ing_name},
+              'risk_type', ${ingredientTable.ing_risk_type},
+              'risk_summary', ${ingredientTable.ing_risk_summary}
+            )
+          ) FILTER (WHERE ${ingredientTable.ing_name} IS NOT NULL),
+          '[]'::json
+        )`,
       })
       .from(productTable)
-      .leftJoin(holderTable, eq(productTable.holder_id, holderTable.holder_id));
+      .leftJoin(holderTable, eq(productTable.holder_id, holderTable.holder_id))
+      .leftJoin(prodIngredientTable, eq(productTable.prod_notif_no, prodIngredientTable.prod_notif_no))
+      .leftJoin(ingredientTable, eq(prodIngredientTable.ing_id, ingredientTable.ing_id))
+      .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
+      .groupBy(
+        productTable.prod_notif_no,
+        productTable.prod_name,
+        productTable.prod_brand,
+        productTable.prod_category,
+        productTable.prod_status_type,
+        productTable.prod_status_date,
+        holderTable.holder_name
+      )
+      .orderBy(desc(productTable.prod_status_date));
 
-    const products = whereConditions.length > 0
-      ? await baseQuery.where(and(...whereConditions)).orderBy(desc(productTable.prod_status_date))
-      : await baseQuery.orderBy(desc(productTable.prod_status_date));
+    // Transform the results to match expected format
+    const results: ProductSearchResult[] = productsWithIngredients.map(product => ({
+      prod_notif_no: product.prod_notif_no,
+      prod_name: product.prod_name,
+      prod_brand: product.prod_brand,
+      prod_category: product.prod_category,
+      prod_status_type: product.prod_status_type as 'A' | 'C',
+      prod_status_date: product.prod_status_date,
+      holder_name: product.holder_name || 'Unknown Holder',
+      ingredients: typeof product.ingredients === 'string' 
+        ? JSON.parse(product.ingredients)
+        : (Array.isArray(product.ingredients) ? product.ingredients : [])
+    }));
 
-    // Batch fetch all ingredients for all products to reduce database queries
-    const allProductNotifNos = products.map(p => p.prod_notif_no);
+    return results;
     
-    let allIngredients: { [key: string]: Array<{ name: string; risk_type: 'L' | 'H' | 'B'; risk_summary: string; }> } = {};
+  } catch (error) {
+    console.error('Error getting filtered products:', error);
     
+    // Fallback to simpler query if JSON aggregation fails (for databases that don't support it)
     try {
-      if (allProductNotifNos.length > 0) {
-        const ingredientsData = await db
-          .select({
-            prod_notif_no: prodIngredientTable.prod_notif_no,
-            name: ingredientTable.ing_name,
-            risk_type: ingredientTable.ing_risk_type,
-            risk_summary: ingredientTable.ing_risk_summary,
-          })
-          .from(prodIngredientTable)
-          .leftJoin(ingredientTable, eq(prodIngredientTable.ing_id, ingredientTable.ing_id))
-          .where(sql`${prodIngredientTable.prod_notif_no} IN (${sql.join(allProductNotifNos.map(notif => sql`${notif}`), sql`, `)})`);
-
-        // Group ingredients by product notification number
-        ingredientsData.forEach(item => {
-          if (!allIngredients[item.prod_notif_no]) {
-            allIngredients[item.prod_notif_no] = [];
-          }
-          allIngredients[item.prod_notif_no].push({
-            name: item.name || '',
-            risk_type: (item.risk_type as 'L' | 'H' | 'B') || 'L',
-            risk_summary: item.risk_summary || '',
-          });
-        });
+      console.log('Falling back to basic query without ingredient aggregation...');
+      
+      const whereConditions = [];
+      
+      // Re-apply basic filters for fallback
+      if (searchQuery && searchQuery.trim()) {
+        const query = searchQuery.trim().toLowerCase();
+        whereConditions.push(or(
+          like(sql`lower(${productTable.prod_name})`, `%${query}%`),
+          like(sql`lower(${productTable.prod_notif_no})`, `%${query}%`)
+        ));
       }
-    } catch (ingredientError) {
-      console.error('Error fetching ingredients in getFilteredProducts:', ingredientError);
-      // Initialize empty ingredients for all products if query fails
-      allProductNotifNos.forEach(notif => {
-        allIngredients[notif] = [];
-      });
-    }
 
-    // Get products with their ingredients
-    const productsWithIngredients: ProductSearchResult[] = products.map((product) => {
-      return {
+      if (filters.approvalStatuses.length > 0 && filters.approvalStatuses.length < 2) {
+        whereConditions.push(
+          sql`${productTable.prod_status_type} IN (${sql.join(filters.approvalStatuses.map(status => sql`${status}`), sql`, `)})`
+        );
+      }
+
+      if (filters.ingredientIds.length > 0) {
+        whereConditions.push(
+          sql`${productTable.prod_notif_no} IN (
+            SELECT DISTINCT ${prodIngredientTable.prod_notif_no} 
+            FROM ${prodIngredientTable} 
+            WHERE ${prodIngredientTable.ing_id} IN (${sql.join(filters.ingredientIds.map(id => sql`${id}`), sql`, `)})
+          )`
+        );
+      }
+      
+      const basicProducts = await db
+        .select({
+          prod_notif_no: productTable.prod_notif_no,
+          prod_name: productTable.prod_name,
+          prod_brand: productTable.prod_brand,
+          prod_category: productTable.prod_category,
+          prod_status_type: productTable.prod_status_type,
+          prod_status_date: productTable.prod_status_date,
+          holder_name: holderTable.holder_name,
+        })
+        .from(productTable)
+        .leftJoin(holderTable, eq(productTable.holder_id, holderTable.holder_id))
+        .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
+        .orderBy(desc(productTable.prod_status_date));
+
+      // Return basic results with empty ingredients array
+      return basicProducts.map(product => ({
         ...product,
         prod_status_type: product.prod_status_type as 'A' | 'C',
         holder_name: product.holder_name || 'Unknown Holder',
-        ingredients: allIngredients[product.prod_notif_no] || [],
-      };
-    });
-
-    // Apply additional filters that require ingredient data
-    let filteredProducts = productsWithIngredients;
-
-    // Apply ingredient filter
-    if (filters.ingredientIds.length > 0) {
-      const productsWithIngredientData = await Promise.all(
-        filteredProducts.map(async (product) => {
-          const productIngredients = await db
-            .select({ ing_id: prodIngredientTable.ing_id })
-            .from(prodIngredientTable)
-            .where(eq(prodIngredientTable.prod_notif_no, product.prod_notif_no));
-          
-          const productIngredientIds = productIngredients.map(pi => pi.ing_id);
-          const hasMatchingIngredient = filters.ingredientIds.some(filterId => 
-            productIngredientIds.includes(filterId)
-          );
-          
-          return { product, hasMatchingIngredient };
-        })
-      );
+        ingredients: [] // Empty ingredients array for fallback
+      }));
       
-      filteredProducts = productsWithIngredientData
-        .filter(item => item.hasMatchingIngredient)
-        .map(item => item.product);
+    } catch (fallbackError) {
+      console.error('Fallback query also failed:', fallbackError);
+      return [];
     }
-
-    // Apply safety level filter
-    if (filters.safetyLevels.length > 0 && filters.safetyLevels.length < 3) {
-      filteredProducts = filteredProducts.filter(product => {
-        // Calculate safety level based on status and ingredients
-        let safetyLevel: 'safe' | 'unsafe' | 'risky';
-        
-        if (product.prod_status_type === 'C') {
-          safetyLevel = 'unsafe';
-        } else {
-          const hasBannedIngredients = product.ingredients.some(ing => ing.risk_type === 'B');
-          const hasHighRiskIngredients = product.ingredients.some(ing => ing.risk_type === 'H');
-          
-          if (hasBannedIngredients || hasHighRiskIngredients) {
-            safetyLevel = 'risky';
-          } else {
-            safetyLevel = 'safe';
-          }
-        }
-        
-        return filters.safetyLevels.includes(safetyLevel);
-      });
-    }
-
-    return filteredProducts;
-  } catch (error) {
-    console.error('Error getting filtered products:', error);
-    // Return empty array instead of throwing to prevent crashes
-    return [];
   }
 }
 
