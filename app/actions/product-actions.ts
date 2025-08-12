@@ -54,7 +54,6 @@ export async function searchProductsAction(query: string): Promise<ProductSearch
     searchConditions.push(
       like(sql`lower(${productTable.prod_name})`, `%${searchQuery}%`),
       like(sql`lower(${productTable.prod_notif_no})`, `%${searchQuery}%`),
-      like(sql`lower(${productTable.prod_brand})`, `%${searchQuery}%`),
       like(sql`lower(${productTable.prod_category})`, `%${searchQuery}%`),
     );
     
@@ -64,7 +63,6 @@ export async function searchProductsAction(query: string): Promise<ProductSearch
         searchConditions.push(
           like(sql`lower(${productTable.prod_name})`, `%${term}%`),
           like(sql`lower(${productTable.prod_notif_no})`, `%${term}%`),
-          like(sql`lower(${productTable.prod_brand})`, `%${term}%`),
           like(sql`lower(${productTable.prod_category})`, `%${term}%`),
         );
       }
