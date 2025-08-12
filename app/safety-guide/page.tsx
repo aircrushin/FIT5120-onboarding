@@ -70,7 +70,7 @@ export default function SafetyGuidePage() {
 
         <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-8 py-12 sm:py-16">
           <div className="text-center space-y-4 animate-fade-in">
-            <span className="inline-block rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 text-xs font-semibold shadow">Guide</span>
+            <span className="inline-block rounded-full bg-gradient-to-r from-rose-400 to-purple-600 text-white px-3 py-1 text-xs font-semibold shadow">Guide</span>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-800">
               Cosmetic Product Safety Guide
             </h1>
