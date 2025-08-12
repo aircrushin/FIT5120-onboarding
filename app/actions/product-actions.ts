@@ -354,16 +354,12 @@ export interface FilterOptions {
     ing_name: string;
     ing_risk_type: 'B' | 'H' | 'L' | 'N';
   }>;
-  categories: string[];
-  brands: string[];
 }
 
 export interface ProductFilters {
   safetyLevels: ('safe' | 'unsafe' | 'risky')[];
   ingredientIds: number[];
   approvalStatuses: ('A' | 'C')[];
-  categories: string[];
-  brands: string[];
 }
 
 export async function getFilterOptionsAction(): Promise<FilterOptions> {
@@ -378,37 +374,17 @@ export async function getFilterOptionsAction(): Promise<FilterOptions> {
       .from(ingredientTable)
       .orderBy(ingredientTable.ing_name);
 
-    // Get all unique categories
-    const categories = await db
-      .selectDistinct({
-        category: productTable.prod_category,
-      })
-      .from(productTable)
-      .orderBy(productTable.prod_category);
-
-    // Get all unique brands
-    const brands = await db
-      .selectDistinct({
-        brand: productTable.prod_brand,
-      })
-      .from(productTable)
-      .orderBy(productTable.prod_brand);
-
     return {
       ingredients: ingredients.map(ing => ({
         ing_id: ing.ing_id,
         ing_name: ing.ing_name,
         ing_risk_type: ing.ing_risk_type as 'B' | 'H' | 'L' | 'N',
-      })),
-      categories: categories.map(c => c.category),
-      brands: brands.map(b => b.brand),
+      }))
     };
   } catch (error) {
     console.error('Error getting filter options:', error);
     return {
-      ingredients: [],
-      categories: [],
-      brands: [],
+      ingredients: []
     };
   }
 }
@@ -449,20 +425,6 @@ export async function getFilteredProductsAction(filters: ProductFilters, searchQ
     if (filters.approvalStatuses.length > 0 && filters.approvalStatuses.length < 2) {
       whereConditions.push(
         sql`${productTable.prod_status_type} IN (${sql.join(filters.approvalStatuses.map(status => sql`${status}`), sql`, `)})`
-      );
-    }
-
-    // Apply category filter
-    if (filters.categories.length > 0) {
-      whereConditions.push(
-        sql`${productTable.prod_category} IN (${sql.join(filters.categories.map(cat => sql`${cat}`), sql`, `)})`
-      );
-    }
-
-    // Apply brand filter
-    if (filters.brands.length > 0) {
-      whereConditions.push(
-        sql`${productTable.prod_brand} IN (${sql.join(filters.brands.map(brand => sql`${brand}`), sql`, `)})`
       );
     }
 

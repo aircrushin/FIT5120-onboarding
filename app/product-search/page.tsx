@@ -270,7 +270,7 @@ const FilterPanel = ({ filterOptions, activeFilters, onFiltersChange, isLoading 
                   onChange={() => updateFilters({
                     safetyLevels: toggleArrayValue(localFilters.safetyLevels, option.value)
                   })}
-                  className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                  className="cursor-pointer w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
                 />
                 {option.icon}
                 <span className="text-sm text-gray-700">{option.label}</span>
@@ -306,7 +306,7 @@ const FilterPanel = ({ filterOptions, activeFilters, onFiltersChange, isLoading 
                   onChange={() => updateFilters({
                     approvalStatuses: toggleArrayValue(localFilters.approvalStatuses, option.value)
                   })}
-                  className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                  className="cursor-pointer w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
                 />
                 {option.icon}
                 <span className="text-sm text-gray-700">{option.label}</span>
@@ -352,7 +352,7 @@ const FilterPanel = ({ filterOptions, activeFilters, onFiltersChange, isLoading 
                     onChange={() => updateFilters({
                       ingredientIds: toggleArrayValue(localFilters.ingredientIds, ingredient.ing_id)
                     })}
-                    className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                    className="cursor-pointer w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
                   />
                   <div className="flex-1">
                     <span className="text-sm text-gray-700">{ingredient.ing_name}</span>
@@ -373,108 +373,6 @@ const FilterPanel = ({ filterOptions, activeFilters, onFiltersChange, isLoading 
               {filterIngredients().length === 0 && (
                 <div className="text-center py-4 text-gray-500 text-sm">
                   No ingredients found matching &quot;{searchTerms.ingredients}&quot;
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Categories Filter */}
-      <div>
-        <button
-          onClick={() => toggleSection('categories')}
-          className="flex items-center justify-between w-full text-left font-medium text-gray-900 mb-3"
-        >
-          Categories ({filterOptions.categories.length})
-          {expandedSections.categories ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
-        </button>
-        {expandedSections.categories && (
-          <div className="space-y-3">
-            {/* Search input for categories */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search categories..."
-                value={searchTerms.categories}
-                onChange={(e) => updateSearchTerm('categories', e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-            
-            <div className="max-h-48 overflow-y-auto space-y-1">
-              {filterCategories().map((category) => (
-                <label key={category} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={localFilters.categories.includes(category)}
-                    onChange={() => updateFilters({
-                      categories: toggleArrayValue(localFilters.categories, category)
-                    })}
-                    className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
-                  />
-                  <span className="text-sm text-gray-700">{category}</span>
-                </label>
-              ))}
-              {filterCategories().length === 0 && (
-                <div className="text-center py-4 text-gray-500 text-sm">
-                  No categories found matching &quot;{searchTerms.categories}&quot;
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Brands Filter */}
-      <div>
-        <button
-          onClick={() => toggleSection('brands')}
-          className="flex items-center justify-between w-full text-left font-medium text-gray-900 mb-3"
-        >
-          Brands ({filterOptions.brands.length})
-          {expandedSections.brands ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
-        </button>
-        {expandedSections.brands && (
-          <div className="space-y-3">
-            {/* Search input for brands */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search brands..."
-                value={searchTerms.brands}
-                onChange={(e) => updateSearchTerm('brands', e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-            
-            <div className="max-h-48 overflow-y-auto space-y-1">
-              {filterBrands().map((brand) => (
-                <label key={brand} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={localFilters.brands.includes(brand)}
-                    onChange={() => updateFilters({
-                      brands: toggleArrayValue(localFilters.brands, brand)
-                    })}
-                    className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
-                  />
-                  <span className="text-sm text-gray-700">{brand}</span>
-                </label>
-              ))}
-              {filterBrands().length === 0 && (
-                <div className="text-center py-4 text-gray-500 text-sm">
-                  No brands found matching &quot;{searchTerms.brands}&quot;
                 </div>
               )}
             </div>
@@ -625,16 +523,12 @@ export default function ProductSearchPage() {
   // Filter states
   const [showFilters, setShowFilters] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-    ingredients: [],
-    categories: [],
-    brands: [],
+    ingredients: []
   });
   const [activeFilters, setActiveFilters] = useState<ProductFilters>({
     safetyLevels: [],
     ingredientIds: [],
-    approvalStatuses: [],
-    categories: [],
-    brands: [],
+    approvalStatuses: []
   });
   const [showNoResultsModal, setShowNoResultsModal] = useState(false);
 
@@ -662,9 +556,7 @@ export default function ProductSearchPage() {
     const hasAnyFilters = 
       filtersToUse.safetyLevels.length > 0 ||
       filtersToUse.ingredientIds.length > 0 ||
-      filtersToUse.approvalStatuses.length > 0 ||
-      filtersToUse.categories.length > 0 ||
-      filtersToUse.brands.length > 0;
+      filtersToUse.approvalStatuses.length > 0;
 
     if (!query.trim() && !hasAnyFilters) {
       setAllSearchResults([]);
@@ -753,9 +645,7 @@ export default function ProductSearchPage() {
     const emptyFilters: ProductFilters = {
       safetyLevels: [],
       ingredientIds: [],
-      approvalStatuses: [],
-      categories: [],
-      brands: [],
+      approvalStatuses: []
     };
     setActiveFilters(emptyFilters);
     handleSearch(searchQuery, emptyFilters, true); // Reset to page 1 when clearing filters
@@ -764,9 +654,7 @@ export default function ProductSearchPage() {
   const hasActiveFilters = 
     activeFilters.safetyLevels.length > 0 ||
     activeFilters.ingredientIds.length > 0 ||
-    activeFilters.approvalStatuses.length > 0 ||
-    activeFilters.categories.length > 0 ||
-    activeFilters.brands.length > 0;
+    activeFilters.approvalStatuses.length > 0
 
   const calculateTrustScore = (product: Product) => {
     let score = 100;
