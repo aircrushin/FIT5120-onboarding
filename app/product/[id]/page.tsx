@@ -387,7 +387,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   <div className="text-xs text-gray-400 uppercase tracking-wide">Product ID</div>
                   <div className="font-mono text-xs">
-                    {product.prod_notif_no.replace(/(.{4})/g, '$1 ').trim()}
+                    {product.prod_notif_no}
                   </div>
                 </div>
               </div>
