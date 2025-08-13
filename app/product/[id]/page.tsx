@@ -610,7 +610,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                       href={`/alternatives/${encodeURIComponent(product.prod_notif_no)}`}
                       className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-medium"
                     >
-                      View {similarProducts.length - 4} more alternatives
+                      View more alternatives
                       <ExternalLink className="w-4 h-4" />
                     </Link>
                   </div>
