@@ -17,6 +17,20 @@ export const metadata = {
     "health protection",
     "beauty safety",
   ],
+  icons: {
+    icon: [
+      {
+        media: '(prefers-color-scheme: light)',
+        url: '/logo.svg',
+        href: '/logo.svg',
+      },
+      {
+        media: '(prefers-color-scheme: dark)',
+        url: '/logo-white.svg',
+        href: '/logo-white.svg',
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
