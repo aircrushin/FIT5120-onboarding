@@ -164,17 +164,12 @@ interface FilterPanelProps {
   activeFilters: ProductFilters;
   onFiltersChange: (filters: ProductFilters) => void;
   isLoading: boolean;
+  onClearFilters: () => void;
 }
 
-const FilterPanel = ({ filterOptions, activeFilters, onFiltersChange, isLoading }: FilterPanelProps) => {
+const DropdownFilterTabs = ({ filterOptions, activeFilters, onFiltersChange, isLoading, onClearFilters }: FilterPanelProps) => {
   const [localFilters, setLocalFilters] = useState<ProductFilters>(activeFilters);
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    safety: true,
-    approval: true,
-    ingredients: false,
-    categories: false,
-    brands: false,
-  });
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [searchTerms, setSearchTerms] = useState<Record<string, string>>({
     ingredients: '',
     categories: '',
@@ -184,13 +179,6 @@ const FilterPanel = ({ filterOptions, activeFilters, onFiltersChange, isLoading 
   useEffect(() => {
     setLocalFilters(activeFilters);
   }, [activeFilters]);
-
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
 
   const updateFilters = (updates: Partial<ProductFilters>) => {
     const newFilters = { ...localFilters, ...updates };
@@ -218,6 +206,47 @@ const FilterPanel = ({ filterOptions, activeFilters, onFiltersChange, isLoading 
     );
   };
 
+  const hasActiveFilters = 
+    activeFilters.safetyLevels.length > 0 ||
+    activeFilters.ingredientIds.length > 0 ||
+    activeFilters.approvalStatuses.length > 0;
+
+  const getFilterCount = (filterType: string) => {
+    switch (filterType) {
+      case 'safety':
+        return activeFilters.safetyLevels.length;
+      case 'approval':
+        return activeFilters.approvalStatuses.length;
+      case 'ingredients':
+        return activeFilters.ingredientIds.length;
+      default:
+        return 0;
+    }
+  };
+
+  const toggleDropdown = (dropdown: string) => {
+    setOpenDropdown(openDropdown === dropdown ? null : dropdown);
+  };
+
+  const closeDropdown = () => {
+    setOpenDropdown(null);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.filter-dropdown-container')) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -228,141 +257,199 @@ const FilterPanel = ({ filterOptions, activeFilters, onFiltersChange, isLoading 
   }
 
   return (
-    <div className="space-y-6">
-      {/* Safety Level Filter */}
-      <div>
-        <button
-          onClick={() => toggleSection('safety')}
-          className="flex items-center justify-between w-full text-left font-medium text-gray-900 mb-3"
-        >
-          Safety Level
-          {expandedSections.safety ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
-        </button>
-        {expandedSections.safety && (
-          <div className="space-y-2">
-            {[
-              { value: 'safe' as const, label: 'Approved (Safe)', icon: <ShieldCheck className="w-4 h-4 text-green-600" />, color: 'green' },
-              { value: 'risky' as const, label: 'Approved but contains risk ingredients', icon: <ShieldAlert className="w-4 h-4 text-yellow-600" />, color: 'yellow' },
-              { value: 'unsafe' as const, label: 'Cancelled (Unsafe/High-risk)', icon: <ShieldX className="w-4 h-4 text-red-600" />, color: 'red' },
-            ].map((option) => (
-              <label key={option.value} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={localFilters.safetyLevels.includes(option.value)}
-                  onChange={() => updateFilters({
-                    safetyLevels: toggleArrayValue(localFilters.safetyLevels, option.value)
-                  })}
-                  className="cursor-pointer w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
-                />
-                {option.icon}
-                <span className="text-sm text-gray-700">{option.label}</span>
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
+    <div className="w-full mb-6">
+      {/* Filter Tabs */}
+      <div className="flex flex-wrap gap-3 filter-dropdown-container">
+        {/* Safety Level Filter */}
+        <div className="relative">
+          <button
+            onClick={() => toggleDropdown('safety')}
+            className={`z-20 flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200 ${
+              openDropdown === 'safety' 
+                ? 'bg-purple-50 border-purple-300 text-purple-700' 
+                : getFilterCount('safety') > 0
+                  ? 'bg-purple-100 border-purple-200 text-purple-700'
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4" />
+            Safety Level
+            {getFilterCount('safety') > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 text-xs bg-purple-200 text-purple-800 rounded-full">
+                {getFilterCount('safety')}
+              </span>
+            )}
+            {openDropdown === 'safety' ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </button>
 
-      {/* Approval Status Filter */}
-      <div>
-        <button
-          onClick={() => toggleSection('approval')}
-          className="flex items-center justify-between w-full text-left font-medium text-gray-900 mb-3"
-        >
-          Approval Status
-          {expandedSections.approval ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
-        </button>
-        {expandedSections.approval && (
-          <div className="space-y-2">
-            {[
-              { value: 'A' as const, label: 'Approved', icon: <CheckCircle className="w-4 h-4 text-green-600" /> },
-              { value: 'C' as const, label: 'Cancelled', icon: <X className="w-4 h-4 text-red-600" /> },
-            ].map((option) => (
-              <label key={option.value} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={localFilters.approvalStatuses.includes(option.value)}
-                  onChange={() => updateFilters({
-                    approvalStatuses: toggleArrayValue(localFilters.approvalStatuses, option.value)
-                  })}
-                  className="cursor-pointer w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
-                />
-                {option.icon}
-                <span className="text-sm text-gray-700">{option.label}</span>
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Ingredients Filter */}
-      <div>
-        <button
-          onClick={() => toggleSection('ingredients')}
-          className="flex items-center justify-between w-full text-left font-medium text-gray-900 mb-3"
-        >
-          Ingredients ({filterOptions.ingredients.length})
-          {expandedSections.ingredients ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
-        </button>
-        {expandedSections.ingredients && (
-          <div className="space-y-3">
-            {/* Search input for ingredients */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search ingredients..."
-                value={searchTerms.ingredients}
-                onChange={(e) => updateSearchTerm('ingredients', e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
+          {openDropdown === 'safety' && (
+            <div className="z-30 absolute top-full left-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 max-h-96 overflow-y-auto">
+              <div className="p-4 space-y-2">
+                {[
+                  { value: 'safe' as const, label: 'Approved (Safe)', icon: <ShieldCheck className="w-4 h-4 text-green-600" />, color: 'green' },
+                  { value: 'risky' as const, label: 'Approved but contains risk ingredients', icon: <ShieldAlert className="w-4 h-4 text-yellow-600" />, color: 'yellow' },
+                  { value: 'unsafe' as const, label: 'Cancelled (Unsafe/High-risk)', icon: <ShieldX className="w-4 h-4 text-red-600" />, color: 'red' },
+                ].map((option) => (
+                  <label key={option.value} className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={localFilters.safetyLevels.includes(option.value)}
+                      onChange={() => updateFilters({
+                        safetyLevels: toggleArrayValue(localFilters.safetyLevels, option.value)
+                      })}
+                      className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                    />
+                    {option.icon}
+                    <span className="text-sm text-gray-700 flex-1">{option.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
-            
-            <div className="max-h-48 overflow-y-auto space-y-1">
-              {filterIngredients().map((ingredient) => (
-                <label key={ingredient.ing_id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+          )}
+        </div>
+
+        {/* Approval Status Filter */}
+        <div className="relative">
+          <button
+            onClick={() => toggleDropdown('approval')}
+            className={`z-20 flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200 ${
+              openDropdown === 'approval' 
+                ? 'bg-purple-50 border-purple-300 text-purple-700' 
+                : getFilterCount('approval') > 0
+                  ? 'bg-purple-100 border-purple-200 text-purple-700'
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <CheckCircle className="w-4 h-4" />
+            Approval Status
+            {getFilterCount('approval') > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 text-xs bg-purple-200 text-purple-800 rounded-full">
+                {getFilterCount('approval')}
+              </span>
+            )}
+            {openDropdown === 'approval' ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </button>
+
+          {openDropdown === 'approval' && (
+            <div className="z-30 absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200">
+              <div className="p-4 space-y-2">
+                {[
+                  { value: 'A' as const, label: 'Approved', icon: <CheckCircle className="w-4 h-4 text-green-600" /> },
+                  { value: 'C' as const, label: 'Cancelled', icon: <X className="w-4 h-4 text-red-600" /> },
+                ].map((option) => (
+                  <label key={option.value} className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={localFilters.approvalStatuses.includes(option.value)}
+                      onChange={() => updateFilters({
+                        approvalStatuses: toggleArrayValue(localFilters.approvalStatuses, option.value)
+                      })}
+                      className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                    />
+                    {option.icon}
+                    <span className="text-sm text-gray-700">{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Ingredients Filter */}
+        <div className="relative">
+          <button
+            onClick={() => toggleDropdown('ingredients')}
+            className={`z-20 flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200 ${
+              openDropdown === 'ingredients' 
+                ? 'bg-purple-50 border-purple-300 text-purple-700' 
+                : getFilterCount('ingredients') > 0
+                  ? 'bg-purple-100 border-purple-200 text-purple-700'
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <Search className="w-4 h-4" />
+            Ingredients ({filterOptions.ingredients.length})
+            {getFilterCount('ingredients') > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 text-xs bg-purple-200 text-purple-800 rounded-full">
+                {getFilterCount('ingredients')}
+              </span>
+            )}
+            {openDropdown === 'ingredients' ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </button>
+
+          {openDropdown === 'ingredients' && (
+            <div className="z-30 absolute top-full left-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-gray-200">
+              <div className="p-4 space-y-3">
+                {/* Search input for ingredients */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
-                    type="checkbox"
-                    checked={localFilters.ingredientIds.includes(ingredient.ing_id)}
-                    onChange={() => updateFilters({
-                      ingredientIds: toggleArrayValue(localFilters.ingredientIds, ingredient.ing_id)
-                    })}
-                    className="cursor-pointer w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                    type="text"
+                    placeholder="Search ingredients..."
+                    value={searchTerms.ingredients}
+                    onChange={(e) => updateSearchTerm('ingredients', e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
-                  <div className="flex-1">
-                    <span className="text-sm text-gray-700">{ingredient.ing_name}</span>
-                    <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${
-                      ingredient.ing_risk_type === 'B' ? 'bg-red-100 text-red-700' :
-                      ingredient.ing_risk_type === 'H' ? 'bg-orange-100 text-orange-700' :
-                      ingredient.ing_risk_type === 'L' ? 'bg-green-100 text-green-700' :
-                      'bg-gray-100 text-gray-700'
-                    }`}>
-                      {ingredient.ing_risk_type === 'B' ? 'Banned' :
-                       ingredient.ing_risk_type === 'H' ? 'High Risk' :
-                       ingredient.ing_risk_type === 'L' ? 'Low Risk' :
-                       'Normal'}
-                    </span>
-                  </div>
-                </label>
-              ))}
-              {filterIngredients().length === 0 && (
-                <div className="text-center py-4 text-gray-500 text-sm">
-                  No ingredients found matching &quot;{searchTerms.ingredients}&quot;
                 </div>
-              )}
+                
+                <div className="max-h-64 overflow-y-auto space-y-1">
+                  {filterIngredients().map((ingredient) => (
+                    <label key={ingredient.ing_id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={localFilters.ingredientIds.includes(ingredient.ing_id)}
+                        onChange={() => updateFilters({
+                          ingredientIds: toggleArrayValue(localFilters.ingredientIds, ingredient.ing_id)
+                        })}
+                        className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm text-gray-700">{ingredient.ing_name}</span>
+                        <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${
+                          ingredient.ing_risk_type === 'B' ? 'bg-red-100 text-red-700' :
+                          ingredient.ing_risk_type === 'H' ? 'bg-orange-100 text-orange-700' :
+                          ingredient.ing_risk_type === 'L' ? 'bg-green-100 text-green-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {ingredient.ing_risk_type === 'B' ? 'Banned' :
+                           ingredient.ing_risk_type === 'H' ? 'High Risk' :
+                           ingredient.ing_risk_type === 'L' ? 'Low Risk' :
+                           'Normal'}
+                        </span>
+                      </div>
+                    </label>
+                  ))}
+                  {filterIngredients().length === 0 && (
+                    <div className="text-center py-4 text-gray-500 text-sm">
+                      {`No ingredients found matching "${searchTerms.ingredients}"`}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+        </div>
+
+        {hasActiveFilters && (
+          <button
+            onClick={onClearFilters}
+            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            <X className="w-3 h-3" />
+            Clear All
+          </button>
         )}
       </div>
     </div>
@@ -507,7 +594,6 @@ export default function ProductSearchPage() {
   const [totalItems, setTotalItems] = useState(0);
 
   // Filter states
-  const [showFilters, setShowFilters] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     ingredients: []
   });
@@ -637,11 +723,6 @@ export default function ProductSearchPage() {
     handleSearch(searchQuery, emptyFilters, true); // Reset to page 1 when clearing filters
   };
 
-  const hasActiveFilters = 
-    activeFilters.safetyLevels.length > 0 ||
-    activeFilters.ingredientIds.length > 0 ||
-    activeFilters.approvalStatuses.length > 0
-
   const calculateTrustScore = (product: Product) => {
     let score = 100;
 
@@ -686,35 +767,29 @@ export default function ProductSearchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="min-h-screen pt-8 bg-gradient-to-br from-purple-50 via-white to-pink-50">
+      <div className="max-w-4xl mx-auto px-4">
         {/* Header Section */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Product Safety Search
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Search for cosmetic products by name or notification number to check
-            their safety status and ingredients.
-          </p>
-        </div>
+        <h1 className="text-left text-4xl font-bold text-gray-900 mb-4">
+          Product Safety Search
+        </h1>
 
         {/* Search Section */}
-        <div className="relative mb-8">
+        <div className="relative mb-8 z-30">
           {/* Floating Search Container */}
           <div className="relative max-w-4xl mx-auto">
             {/* Background Glow Effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 via-pink-400/20 to-blue-400/20 rounded-2xl blur-xl transform scale-105"></div>
 
             {/* Main Search Container */}
-            <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-6 transition-all duration-300 hover:shadow-3xl hover:bg-white/90">
+            <div className="relative transition-all duration-300">
               {/* Search Input Container */}
               <div className="relative group">
                 {/* Animated Border Gradient */}
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-300 group-focus-within:opacity-60"></div>
 
                 {/* Input Wrapper */}
-                <div className="relative flex items-center bg-white rounded-xl border-2 border-gray-100 group-focus-within:border-transparent transition-all duration-300 shadow-sm group-hover:shadow-md">
+                <div className="relative flex items-center bg-white rounded-xl border-2 border-gray-100 group-focus-within:border-transparent transition-all duration-300 shadow-sm group-hover:shadow-md mb-4">
                   {/* Search Icon */}
                   <div className="pl-5 pr-3">
                     <Search
@@ -768,26 +843,16 @@ export default function ProductSearchPage() {
                     </div>
                   )}
                 </div>
-
-                {/* Placeholder Text */}
-                <div className="mt-3 flex flex-wrap gap-2 justify-center">
-                  {[
-                    "Try: Vitamin C",
-                    "NOT110307162K",
-                    "Face cream",
-                  ].map((suggestion, index) => (
-                    <button
-                      key={index}
-                      onClick={() =>
-                        setSearchQuery(suggestion.replace(/['"]/g, ""))
-                      }
-                      className="px-3 py-1 text-xs text-gray-500 hover:text-purple-400 hover:bg-purple-25 rounded-full transition-all duration-200 border border-gray-200 hover:border-purple-100"
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
               </div>
+
+              {/* Dropdown Filter Tabs */}
+              <DropdownFilterTabs
+                filterOptions={filterOptions}
+                activeFilters={activeFilters}
+                onFiltersChange={applyFilters}
+                isLoading={isLoadingFilters}
+                onClearFilters={clearFilters}
+              />
 
               {/* Loading State */}
               {isSearching && (
@@ -834,49 +899,6 @@ export default function ProductSearchPage() {
           </div>
         </div>
 
-        {/* Filter Section */}
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all duration-200 ${
-                showFilters
-                  ? "bg-purple-100 border-purple-300 text-purple-700"
-                  : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              <Filter className="w-4 h-4" />
-              Filters
-              {showFilters ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-            </button>
-            
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                <X className="w-3 h-3" />
-                Clear Filters
-              </button>
-            )}
-          </div>
-
-          {showFilters && (
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-              <FilterPanel
-                filterOptions={filterOptions}
-                activeFilters={activeFilters}
-                onFiltersChange={applyFilters}
-                isLoading={isLoadingFilters}
-              />
-            </div>
-          )}
-        </div>
-
         {/* No Results Modal */}
         {showNoResultsModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -902,7 +924,7 @@ export default function ProductSearchPage() {
 
         {/* Results Section */}
         {hasSearched && (
-          <div className="space-y-6" id="search-results">
+          <div className="space-y-6 z-10" id="search-results">
             {allSearchResults.length > 0 ? (
               <>
                 <div className="flex items-center justify-between">
