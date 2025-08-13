@@ -124,8 +124,8 @@ export default function IngredientScannerPage() {
         <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-20 h-60 bg-[radial-gradient(600px_240px_at_50%_0,rgba(59,130,246,0.12),transparent)]" />
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 mb-3">
-            Banned Substances Library
+          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 mb-3 py-2">
+            Banned Ingredients Library
           </h1>
           <p className="text-lg md:text-xl text-gray-600/90 leading-relaxed max-w-3xl mx-auto">
             Search for cosmetic ingredients to check their safety status and view banned substance trends over time.
@@ -254,7 +254,7 @@ export default function IngredientScannerPage() {
                 
                 <div className="mb-6">
                   <p className="text-gray-700">
-                    Total number of products <span className="font-semibold">{trends.ingredient_name}</span> has been banned: 
+                    Total number of products containing <span className="font-semibold">{trends.ingredient_name}</span> that has been banned: 
                     <span className="ml-2 text-2xl font-bold text-red-600">{trends.total_banned_count}</span>
                   </p>
                 </div>
